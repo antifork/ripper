@@ -18,7 +18,7 @@ static struct neo_options opt[] = {
   {'h', no_argument, NULL, NULL, "print help"},
   {'d', no_argument, "d/dc", NULL, "daemonize"},
   {'c', no_argument, "c/cd", NULL, "check injection"}, 
-  //{'+', 0, "|arbx", 0, 0},
+  {'+', 0, "|Narbx", 0, 0},
   {0, 0, 0, 0, 0}
 };
 
