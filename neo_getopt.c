@@ -37,7 +37,7 @@
 #include <string.h>
 #include <stdarg.h>
 
-static const char cvsid[] = "$Id$";
+static const char cvsid[] = "$cvsid: neo_getopt.c,v 1.18 2003/05/06 10:23:23 awgn Exp $"; 
 static const char copyright[] = "Copyright (c) 2002 Bonelli Nicola <bonelli@antifork.org>";
 
 extern char *__progname;
