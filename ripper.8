@@ -1,0 +1,103 @@
+..
+.TH RiPPeR "8" "20030120" "RiPPeR 1.1-beta"
+.SH NAME
+.B RiPPeR 1.1-beta \- Routing Table Corrupter 
+
+.SH SYNOPSIS
+.B ripper [-r route] [-m metric] [-g gateway] [-n netmask] [-i interface] [-s spoofed address] [-dfch]
+
+.SH DESCRIPTION
+RiPPeR is a RIPv2 routing table corrupter. It can inject evil routes on a 
+selected router in LAN environment and can also check if they have been 
+injected correctly. RiPPeR offers the possibility to spoof the source 
+address but with some restrictions, read the README for more informations. 
+In general RiPPeR pretends to be a full-featured RIPv2 routing daemon.
+
+.TP
+Read README for informations about special cases.
+.PP
+.SH OPTIONS
+.TP
+\fB\-b <subnet>\fE
+Scan a subnet searching for RIPv2 host. This option is to be used with
+the following format: subnet/prefix
+.br
+Example: 192.168.0.0/24
+.br
+.TP
+\fB\-r <route>\fR
+Select the route to inject. This argument is mandatory if you don't use
+-a option.
+.br
+.TP
+\fB\-a\fR
+This will inject routes read in file passed as argument. This file is generated
+using routemake.
+.br
+.TP
+\fB\-m <metric>\fR
+Set the metric associated with the route. This argument is mandatory if
+you don't specify -a option.
+.br
+.TP
+\fB\-g <gateway>\fR
+Set the default gateway for the route. Default is local machine. 
+.br
+.TP
+\fB\-n <netmask>\fR
+Set the netmask associated with the route. Default is 255.255.255.0.
+.br
+.TP
+\fB\-s <spoofed address>\fR
+Send packets from a spoofed address. Read the README before using this
+options. This argument is optional.
+.br
+.TP
+\fB\-i <interface>\fR
+Select the interface. Default is eth0. 
+.br
+.TP
+\fB\-d\fR
+Run as a daemon. This argumets override -c.
+.br
+.TP
+\fB\-f\fR
+Force. Normal execution of the tool checks if your box is able to forward
+packets, becouse if it is not able, the attack won't work. If you specify
+this option you force the program not to check packet forwarding.
+Read README for more informations.
+.br
+.TP
+\fB\-c\fR
+Check Route. Check if the route has been injected correctly. This option
+is overriden by -d.
+.br
+.TP
+\fB\-h\fR
+Shows help.
+.br
+
+.SH PLATFORMS
+Linux 2.0.x  2.2.x  2.4.x
+.PP
+
+.SH AVAILABILITY
+Official web site: http://www.spine-group.org
+.PP
+
+.SH KNOW BUGS
+- No known bugs. 
+
+Please report bugs to authors
+.PP
+
+.SH AUTHORS
+mydecay <mydecay@spine-group.org>
+.br
+click <click@spine-group.org>
+.PP
+
+.SH LICENSE
+GNU GENERAL PUBLIC LICENSE
+Version 2, June 1991
+See COPYING for details.

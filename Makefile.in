@@ -1,0 +1,46 @@
+CC          = @CC@
+CFLAGS      = @CFLAGS@  
+CPPFLAGS    = @CPPFLAGS@   
+LDFLAGS     = @LDFLAGS@
+LIBS        = @LIBS@  
+#DEFS        = -DHAVE_NET_ETHERNET_H -DLIBNET_LIL_ENDIAN
+DEFS	    = `libnet-config --defines`
+INSTALL     = @INSTALL@
+
+prefix      = @prefix@
+exec_prefix = @exec_prefix@
+bindir      = @bindir@
+mandir      = @mandir@
+datadir     = @datadir@
+srcdir      = @srcdir@
+shtool      = @SHTOOL@
+
+OBJS = main.o ripper.o misc.o neo_options.o
+
+all:	routemake ripper
+	
+ripper:	$(OBJS)
+	$(CC) $(CFLAGS) $(LDFLAGS) -o ripper $(OBJS) $(LIBS) 
+	@echo
+	@echo "Successful! Now type make install"
+	@echo
+
+routemake: 
+	$(CC) routemake.c -o routemake
+
+.c.o:
+	$(CC) $(CFLAGS) $(DEFS) $(CPPFLAGS) -c $< -o $@
+
+install:
+	chown root ripper ripper.8
+	cp -fR ripper @bindir@
+	cp -fR ripper.8 @mandir@/man8
+	@echo
+	@echo "Enjoy RiPPeR - mydecay && click"
+	@echo
+
+clean:
+	rm -fR *~ *.bak *.o *.cache *.log ripper config.status config.h stamp-h* routemake
+
+distclean: clean
+	rm -f @bindir@/ripper @mandir@/man8/ripper.8

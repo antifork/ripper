@@ -1,0 +1,71 @@
+*-*-*-*-*-*-*-*-*-*-*-*
+*   RiPPeR 1.1-beta   *
+*-*-*-*-*-*-*-*-*-*-*-*
+
+* Which platforms RiPPeR supports?
+
+As now, RiPPeR can be compiled only under Linux. More precisely it has 
+been tested on kernel 2.4.19, but should work perfectly on 2.5.x,
+please report your experience :)
+
+* What this tool does?
+
+This tool allow you to inject routes to RIPv2 routers specifying the metric
+associated with them. While the tool is running it sends RIPv2 response
+every 30 seconds to maintain the route up. This happens correctly if the 
+route doesen't exist on the router's routing table.
+
+* Why it checks for packets forwaring?
+
+Probably you are running the tools without -g option. If you do so, the 
+route's default gateway is set to local machine. If your box doesen't 
+have packet forwarding set, won't be able to forward packets, so the
+attack won't work.
+Obviously -f option force the program to not check packet forwarding.
+
+* How can i use it correctly?
+
+This is a hard question to answer. First of all you must hide your 
+presence, so we suggest you to set with route(8) the right routes
+to allow the packets to reach their real destination. (This will be
+automatic in the future versions).
+
+Read entirely this file to know more about the correct use of this
+tool.
+
+* How can i set a metric associated with a route to higher value?
+
+If you wanna do this we suppose the actual metric to that ip is 
+lower than yours. As you should know a routing daemon chooses
+the response with lower metric so our metric will be silently 
+discarded. Generally in routing table there are routes to subnets 
+not to single hosts, so we will exploit this thing. When a router
+receive a RIPv2 response first check if there is a host route that
+match the one specified in the packet and than if there is a subnet
+that match. So if you wanna set a route to higher value generally you 
+must simply adverise a route to a single ip and not to a subnet.
+Also you must specify the netmask to 255.255.255.255, to advertise
+host routes instead of subnet routes.
+
+* Problems with spoofed source...
+
+Note that if you specify a spoofed source whose address doesen't
+belong to a subnet listed in the routing table of the victim host,
+the routes won't be injected. You must only specify valid address
+according to the LAN subnets.
+
+* How can I inject multiple routes?
+
+Version 1.1-beta introduces the possibility to inject multiple
+routes. You must run routemake, a tool shipped with RiPPeR, that
+allows you to create routes.conf file. This is read by RiPPeR
+through option "-a". That's all.
+
+* How can I find RIPv2 routers?
+
+You can use -b option. This option take an argument that is the
+subnet with his prefix length in the following format:
+subnet/prefix.
+Examples: 192.168.0.0/24, 172.16.0.0/16, 10.0.0.0/8
+Be careful using this option, becouse it generates a lot of
+traffic!!!
