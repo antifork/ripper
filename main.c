@@ -312,50 +312,17 @@ check_injection ()
 }
 
 void
-pack_handler (u_char * args, const struct pcap_pkthdr *header,
-	      const u_char * packet)
+pack_handler (char *packet, int readlen, unsigned long ip)
 {
-#ifdef __Linux__
-  struct iphdr *ipr;
-#endif /*Linux*/ 
-  
-#ifdef __OpenBSD__
-  struct ip *ipr;
-#endif /*OpenBSD*/
-
   struct rip_message *rip_head;
 
-#ifdef __Linux__  
-  ipr = (struct iphdr *) (packet + sizeof_datalink (handle));
+  rip_head = (struct rip_message *) (packet + 4);
+printf("packet handler\n");
+  n_print ("princ",1,2," HOST %s SPEAKS RIPv%i!!\n", in_ntoa(htonl(ip)),
+	  *(packet + 1));
 
-#endif /*Linux*/
-
-#ifdef __OpenBSD__
-  ipr = (struct ip *) (packet + sizeof_datalink (handle));
-
-#endif /*OpenBSD*/
-
-#ifdef __Linux__
-  rip_head = (struct rip_message *) (packet + sizeof_datalink (handle) +
-				     sizeof (struct iphdr) + sizeof (struct udphdr) + 4);
-#endif /*Linux*/
-
-#ifdef __OpenBSD__
-  rip_head = (struct rip_message *) (packet + sizeof_datalink (handle) +
-				     sizeof (struct ip) + sizeof (struct udphdr) + 4);
-#endif /*OpenBSD*/
-
-#ifdef __Linux__
-  n_print ("princ",1,2," HOST %s SPEAKS RIPv%i!!\n", in_ntoa ((unsigned long) ipr->saddr),
-	  *(packet + sizeof_datalink (handle) + sizeof (struct iphdr) + sizeof (struct udphdr) +1));
-#endif /*Linux*/
-
-#ifdef __OpenBSD__
- n_print ("princ",1,2," HOST %s SPEAKS RIPv%i!!\n", in_ntoa ((unsigned long) ipr->ip_src.s_addr),
-	 *(packet + sizeof_datalink (handle) + sizeof (struct ip) + sizeof (struct udphdr) +1));
-#endif /*OpenBSD*/
   n_print ("princ",1,2," *-*-*-*-*-*-*-*-*-*-*-*-*\n");
-  for (; (u_long) * (&rip_head) < (u_long) (packet) + header->caplen; rip_head++)
+  for (; (u_long) * (&rip_head) < (u_long) (packet) + readlen; rip_head++)
     {
       n_print ("princ",2,2,"   |-- IP: %s\n", in_ntoa (rip_head->ip));
       n_print ("princ",3,2,"   |------ Metric: %u\n", ntohl (rip_head->metric));
@@ -366,56 +333,33 @@ pack_handler (u_char * args, const struct pcap_pkthdr *header,
     }
 }
 
-void
-listent (char *net)
-{
-  struct bpf_program filter;
-  char filter_app[50];
-
-  sprintf (filter_app, "src net %s and udp src port 520", net);
-  handle = pcap_open_live (dev, BUFSIZ, 1, -1, errbuf);
-  if (pcap_compile (handle, &filter, filter_app, 0, localnet) < 0)
-    {
-      if(graph)
-	{
-	  endwin();
-	} 
-   
-    fatal (" pcap_compile: %s\n\n", pcap_geterr (handle));
-    exit(1);
-    }
-  pcap_setfilter (handle, &filter);
-  pcap_loop (handle, -1, pack_handler, NULL);
-}
-
 int
 scan_net (char *net)
 {
-  char *prefix, *pcap_arg;
-  pthread_t pt;
-  int sock;
+  char *prefix;
+  int sock[0xff], readlen;
+  unsigned long i, j;
   unsigned long start, end;
-  struct
-    {
+  struct {
       struct rip rip_head;
       struct rip_message entry;
-    } rip_scan;
+  } rip_scan;
   struct sockaddr_in peers;
+  fd_set rfd;
+  struct timeval tv;
+  char buffer[BUFLEN];
 
   peers.sin_family = AF_INET;
   peers.sin_port = htons (RIP_PORT);
 
-  pcap_arg = strdup (net);
-  if ((prefix = memchr (net, '/', strlen (net))) == NULL)
-    {
-      if(graph)
-	{
+  if ((prefix = memchr (net, '/', strlen (net))) == NULL) {
+      if(graph) {
 	  n_print("princ",1,2,"You must use the subnet/prefix format!!!");
 	  return (0);
-	}
-      else
+      } else
 	fatal(" You must use the subnet/prefix format!!!\n Example: 192.168.0.0/24 format!!!\n\n");
-    }
+  }
+  
   *(prefix) = '\0';
   start = inet_network (net);
   end = start + (1 << (32 - atoi (++prefix)));
@@ -426,31 +370,56 @@ scan_net (char *net)
   rip_scan.rip_head.version = 2;
   rip_scan.entry.metric = htonl (16);
 
-  if (pthread_create (&pt, NULL, (void *) listent, pcap_arg))
-    {
-      if(graph)
-	endwin();
-      
-      fatal("\nerror while creating pthread\n");
-      exit (1);
+  tv.tv_sec = 5;
+  tv.tv_usec = 0;
+  
+  while(1) {
+  	FD_ZERO(&rfd);
 
-    }
-  for (; start <= end; start++)
-    {
-      if (!(start & 0xff))
-      start++;
-      if ((start & 0xff) == 255)
-      start++;
-      peers.sin_addr.s_addr = htonl (start);
-      sock = socket (AF_INET, SOCK_DGRAM, 0);
-      sendto (sock, &rip_scan, sizeof (rip_scan), 0, (struct sockaddr *) &peers, sizeof (peers));
-      close (sock);
-    }
+	for (i = 0; (start+i < end) && (i < 0xff); i++) {
+                if (((start+i) & 0xff) == 0xff)
+			continue;
+		if(!((start+i) & 0xff))
+			continue;
+		if ((sock[i] = socket (AF_INET, SOCK_DGRAM, 0)) < 0)
+			fatal("unable to create socket\n");
+		FD_SET(sock[i], &rfd);
+  	}
+	printf("Sending Packets: ");
+	for (i = 0; (start+i < end) && (i < 0xff); i++) {
+                if (((start+i) & 0xff) == 0xff)
+        		continue;        
+		if(!((start+i) & 0xff))
+                	continue;
+		peers.sin_addr.s_addr = htonl (start+i);
+		if (sendto (sock[i], &rip_scan, sizeof (rip_scan), 0, (struct sockaddr *) &peers, sizeof (peers)) < 0)
+			printf("error sending frame to %s\n", in_ntoa(peers.sin_addr.s_addr));
+	}
+	printf(" Packets From %s to ", in_ntoa(htonl(start)));
+	printf(" %s Sent!\n", in_ntoa(htonl(start+i))); 
+	printf("Now Listening..\n");
+	fflush(stdout);
+	if ((j = select(sock[0xff]+1, &rfd, NULL, NULL, &tv)) > 0) { 
+		for (i = 0; (start+i < end) && (i < 0xff) && (j != 0); i++) {
+			if (((start+i) & 0xff) == 0xff)
+	                        continue;
+	                if(!((start+i) & 0xff))
+	                        continue;
+			if (FD_ISSET(sock[i], &rfd)) {
+				memset(buffer, 0, BUFLEN);
+				printf("%s\n", in_ntoa(htonl(start+i)));
+				if ((readlen = read(sock[i], buffer, BUFLEN)) > 0) {
+					pack_handler(buffer, readlen, start+i);
+					j--;
+				}
+			}
+		}
+	}
+	for (i = 0; (start+i < end) && (i < 0xff); i++)
+		close(sock[i]);
+	if ((start+=0x100) >= end) break; 
+  }
 
-  sleep (5);
-  pthread_cancel (pt);
-  pthread_join (pt, NULL);
-  free (pcap_arg);
   return 0;
 }
 
@@ -465,7 +434,7 @@ rip_file_read (char *filez)
       if(graph)
 	{
 	  endwin();
-	  printf("\n**%sRember that if you want to read from the dafault file you have to type NULL in the pop_up%s**\n\n",BOLD,NORMAL);
+	  printf("\n**%sRember that if you want to read from the default file you have to type NULL in the pop_up%s**\n\n",BOLD,NORMAL);
 	}
     fatal ("Unable to open %s.\n", filez);
     }
