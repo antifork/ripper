@@ -12,6 +12,8 @@
 #include "bpf.h"
 #include "neo_getopt.h"
 
+#include "config.h"
+
 #ifdef __OpenBSD__
 #include <netinet/ip.h>
 #include <netinet/udp.h>
