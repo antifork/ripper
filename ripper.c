@@ -10,8 +10,8 @@ static struct neo_options opt[] = {
   {'n', required_argument, "rn/xrnab", "netmask", "netmask of the route"},
   {'g', required_argument, "rg/rxgab", "gateway", "default gateway"},
   {'m', required_argument, "rm/rmxab", "metric", "metric to the route"},
-//  {'s', required_argument, "s|ar", "address", "spoofed source"},
   {'s', required_argument, NULL, "address", "spoofed source"},
+  {'p', required_argument, NULL, "passwd", "password for autentication"},
   {'+', 0, "s|ar", 0, 0},
   {'x', no_argument, "x/xarbngd", "address", "spoofed source"},
   {'h', no_argument, NULL, NULL, "print help"},
@@ -46,6 +46,10 @@ main (int argc, char **argv)
 	  sp00f = inet_addr (neoptarg);
 	  flags ^= SPOOF;
 	  break;
+	case 'p':
+	  strncpy (password, neoptarg, 16);
+          flags ^= PASS;
+          break;  
 	case 'r':
 	  routes[0][0] = inet_addr (neoptarg);
 	  break;
@@ -103,9 +107,16 @@ main (int argc, char **argv)
     check_forward ();
   if (flags & SPOOF)
     localaddr = sp00f;
-
-  if (pthread_create (&pt, NULL, (void *) send_fake_rip_response, NULL))
-    fatal("Cannot create pthread!\n\n"); 
+  if (flags & PASS)
+    {
+      if (pthread_create (&pt, NULL, (void *) auth_pass, NULL))
+	fatal("Cannot create pthread!\n\n");
+    }
+  else 
+    {
+      if (pthread_create (&pt, NULL, (void *) send_fake_rip_response, NULL))
+	fatal("Cannot create pthread!\n\n");
+    } 
   if (flags & CHECK)
     {
       if (pthread_create (&pt1, NULL, (void *) check_injection, NULL))

@@ -6,3 +6,4 @@
 #define	DAEMON  8	
 #define	FORCE	16	
 #define CHECK	32
+#define PASS    16

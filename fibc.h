@@ -20,6 +20,7 @@ char            errbuf[PCAP_ERRBUF_SIZE], *dev;
 unsigned long	localaddr, localnet;
 extern int 	errno;
 int 		w;
+char            password[16];
 unsigned int 	routes[4][25];
 pthread_t pt, pt1;
 unsigned long flags;
@@ -45,6 +46,12 @@ struct authentication {
 	char passwd[16];
 };
 
+struct rip_auth_message {
+  unsigned long ip;
+  unsigned long netmask;
+  unsigned long gateway;
+  unsigned long metric;
+};
 /* Main function prototypes */
 
 unsigned short  in_cksum(unsigned short *, int);
@@ -57,6 +64,7 @@ void            init_all();
 int 		scan_net(char *);
 void		rip_file_read(char *);
 void		sniff_passwd();
+void            auth_pass();
 void		wait();
 void fatal(char *pattern,...) __attribute__((noreturn, weak));
 int neo_getopt (int , char *const[] , const struct neo_options *, int);
