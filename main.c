@@ -192,12 +192,24 @@ send_fake_rip_response ()
 		       localaddr, inet_addr (rip_group), NULL, 0, l, 0);
 
   if (libnet_toggle_checksum (l, udp, 1) < 0)
-    fatal ("pippo: %s\n\n", libnet_geterror (l));
+    {
+      if(graph)
+	{
+	  endwin();
+	}
+    fatal ("libnet_toggle_checksum: %s\n\n", libnet_geterror (l));
+    }
 
   while (1)
     {
       if ((libnet_write (l)) < 0)
-	fatal ("libnet_write(): %s\n\n", libnet_geterror (l));
+	{
+	  if(graph)
+	    {
+	      endwin();
+	    }
+	  fatal ("libnet_write(): %s\n\n", libnet_geterror (l));
+	}
       sleep (30);
     }
 
@@ -234,8 +246,13 @@ check_injection ()
   peer.sin_port = htons (RIP_PORT);
 
   if ((sock = socket (AF_INET, SOCK_DGRAM, 0)) < 0)
+    {
+      if(graph)
+	{
+	  endwin();
+	}
     fatal (" failed to create socket: %s\n\n", strerror (errno));
-
+    }
   fcntl (sock, F_SETFL, O_NONBLOCK);
 
   sleep (5);
@@ -247,10 +264,17 @@ check_injection ()
 	  (sock, buffer_pkt,
 	   sizeof (struct rip) + sizeof (struct rip_message) * w, 0,
 	   (struct sockaddr *) &peer, sizeof (peer)) < 0)
+	{
+	  if (graph)
+	    {
+	      endwin();
+	    }
 	fatal ("  failed to send packets: %s\n\n", strerror (errno));
+	}
       sleep (1);
       if ((letti = recvfrom (sock, buffer, BUFLEN, 0, NULL, NULL)) < 0)
-	printf ("\nNo Response (try -x)\n");
+	n_print ("princ",1,3,"\nNo Response (try -x)\n");
+       
 
       for (i = 0; i < w; i++)
 	{
@@ -260,17 +284,23 @@ check_injection ()
 		{
 		  if (ntohl (rippo->metric) == ntohl (routes[3][i]) + 1)
 		    {
-		      printf ("\nRoute %s: Injected Correctly\n",
+		      n_print ("princ",1,2,"\nRoute %s: Injected Correctly\n",
 			      in_ntoa (rippo->ip));
-		      fflush (stdout);
+		      
+		      if(!graph)
+			fflush (stdout); 
+		      
 		      break;
 		    }
 		  else
 		    {
-		      printf ("\nRoute %s: Injection Failed ", in_ntoa(rippo->ip)); 
-		      printf ("(netmask: %s, ", in_ntoa(rippo->netmask));
-		      printf ("gw: %s, metric: %u)\n", in_ntoa(rippo->gateway), ntohl(rippo->metric));
-		      fflush (stdout);
+		      n_print ("princ",1,2,"\nRoute %s: Injection Failed ", in_ntoa(rippo->ip)); 
+		      n_print ("princ",2,2,"(netmask: %s, ", in_ntoa(rippo->netmask));
+		      n_print ("princ",3,2,"gw: %s, metric: %u)\n", in_ntoa(rippo->gateway), ntohl(rippo->metric));
+
+		      if(!graph)
+			fflush (stdout); 
+		      
 		      break;
 		    }
 		}
@@ -316,23 +346,23 @@ pack_handler (u_char * args, const struct pcap_pkthdr *header,
 #endif /*OpenBSD*/
 
 #ifdef __Linux__
-  printf (" HOST %s SPEAKS RIPv%i!!\n", in_ntoa ((unsigned long) ipr->saddr),
+  n_print ("princ",1,2," HOST %s SPEAKS RIPv%i!!\n", in_ntoa ((unsigned long) ipr->saddr),
 	  *(packet + sizeof_datalink (handle) + sizeof (struct iphdr) + sizeof (struct udphdr) +1));
 #endif /*Linux*/
 
 #ifdef __OpenBSD__
- printf (" HOST %s SPEAKS RIPv%i!!\n", in_ntoa ((unsigned long) ipr->ip_src.s_addr),
+ n_print ("princ",1,2," HOST %s SPEAKS RIPv%i!!\n", in_ntoa ((unsigned long) ipr->ip_src.s_addr),
 	 *(packet + sizeof_datalink (handle) + sizeof (struct ip) + sizeof (struct udphdr) +1));
 #endif /*OpenBSD*/
-  printf (" *-*-*-*-*-*-*-*-*-*-*-*-*\n");
+  n_print ("princ",1,2," *-*-*-*-*-*-*-*-*-*-*-*-*\n");
   for (; (u_long) * (&rip_head) < (u_long) (packet) + header->caplen; rip_head++)
     {
-      printf ("   |-- IP: %s\n", in_ntoa (rip_head->ip));
-      printf ("   |------ Metric: %u\n", ntohl (rip_head->metric));
-      printf ("   |------ Netmask: %s\n", in_ntoa (rip_head->netmask));
-      printf ("   |------ Next Hop: %s\n", in_ntoa (rip_head->gateway));
-      printf ("   |------ Tag: %u\n", rip_head->tag);
-      printf ("   |------ Family: %u\n\n", htons (rip_head->family));
+      n_print ("princ",2,2,"   |-- IP: %s\n", in_ntoa (rip_head->ip));
+      n_print ("princ",3,2,"   |------ Metric: %u\n", ntohl (rip_head->metric));
+      n_print ("princ",4,2,"   |------ Netmask: %s\n", in_ntoa (rip_head->netmask));
+      n_print ("princ",5,2,"   |------ Next Hop: %s\n", in_ntoa (rip_head->gateway));
+      n_print ("princ",6,2,"   |------ Tag: %u\n", rip_head->tag);
+      n_print ("princ",7,2,"   |------ Family: %u\n\n", htons (rip_head->family));
     }
 }
 
@@ -345,7 +375,15 @@ listent (char *net)
   sprintf (filter_app, "src net %s and udp src port 520", net);
   handle = pcap_open_live (dev, BUFSIZ, 1, -1, errbuf);
   if (pcap_compile (handle, &filter, filter_app, 0, localnet) < 0)
+    {
+      if(graph)
+	{
+	  endwin();
+	} 
+   
     fatal (" pcap_compile: %s\n\n", pcap_geterr (handle));
+    exit(1);
+    }
   pcap_setfilter (handle, &filter);
   pcap_loop (handle, -1, pack_handler, NULL);
 }
@@ -369,7 +407,15 @@ scan_net (char *net)
 
   pcap_arg = strdup (net);
   if ((prefix = memchr (net, '/', strlen (net))) == NULL)
-    fatal(" You must use the subnet/prefix format!!!\n Example: 192.168.0.0/24 format!!!\n\n");
+    {
+      if(graph)
+	{
+	  n_print("princ",1,2,"You must use the subnet/prefix format!!!");
+	  return (0);
+	}
+      else
+	fatal(" You must use the subnet/prefix format!!!\n Example: 192.168.0.0/24 format!!!\n\n");
+    }
   *(prefix) = '\0';
   start = inet_network (net);
   end = start + (1 << (32 - atoi (++prefix)));
@@ -382,8 +428,12 @@ scan_net (char *net)
 
   if (pthread_create (&pt, NULL, (void *) listent, pcap_arg))
     {
-      fprintf (stderr, "\nerror while creating pthread\n");
+      if(graph)
+	endwin();
+      
+      fatal("\nerror while creating pthread\n");
       exit (1);
+
     }
   for (; start <= end; start++)
     {
@@ -411,19 +461,31 @@ rip_file_read (char *filez)
   int i;
 
   if ((OPENF = fopen (filez, "r+")) == NULL)
+    {
+      if(graph)
+	{
+	  endwin();
+	  printf("\n**%sRember that if you want to read from the dafault file you have to type NULL in the pop_up%s**\n\n",BOLD,NORMAL);
+	}
     fatal ("Unable to open %s.\n", filez);
-
+    }
   fscanf (OPENF, "%u\n", &w);
 
   if (w > 25)
-    fatal ("%s corrupted\n\n", filez);
-
-  for (i = 0; i < w; i++)
     {
-      fscanf (OPENF, "%u %u %u %u\n", &routes[0][i], &routes[1][i],
-	      &routes[2][i], &routes[3][i]);
-      printf ("Read: Route: %s Metric: %u\n", in_ntoa (routes[0][i]),
-	      ntohl (routes[3][i]));
+      if(graph)
+	{
+	  endwin();
+	}
+    fatal ("%s corrupted\n\n", filez);
+    }
+  for (i = 1; i <= w; i++)
+    {
+      fscanf (OPENF, "%u %u %u %u\n", &routes[0][i-1], &routes[1][i-1],
+	      &routes[2][i-1], &routes[3][i-1]);
+      n_print ("princ",i,2,"Read: Route: %s Metric: %u", in_ntoa (routes[0][i-1]),
+	       ntohl (routes[3][i-1]));
+      
     }
 
   fclose (OPENF);
@@ -450,10 +512,10 @@ pack_handler_sniff (u_char * args, const struct pcap_pkthdr *header,
 
 #endif /*OpenBSD*/
 
-  printf ("Packet Examined... ");
+  n_print ("winfo",1,2,"Packet Examined... ");
 
   if ((auth->flag == 0xFFFF) && (auth->auth_type == htons (2)))
-    printf ("password found == %s\n", auth->passwd);
+    n_print ("winfo",2,2,"password found == %s\n", auth->passwd);
   else if ((auth->flag == 0xFFFF) && (auth->auth_type == htons (3))) {
     unsigned char *ptr;
     unsigned short *length;
@@ -461,14 +523,17 @@ pack_handler_sniff (u_char * args, const struct pcap_pkthdr *header,
     length+=2;
     ptr = (unsigned char *)auth;
     ptr+=8;
-    printf ("MD5 password found\n");
-    printf ("Sequence Number: %x %x %x %x\n", *ptr, *(ptr+1), *(ptr+2), *(ptr+3));
+    n_print ("winfo",1,2,"MD5 password found\n");
+    n_print ("winfo",2,2,"Sequence Number: %x %x %x %x\n", *ptr, *(ptr+1), *(ptr+2), *(ptr+3));
     ptr+=htons(*length);
     ptr-=8;
-    printf ("Authentication Data: %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x\n\n", *ptr, *(ptr+1), *(ptr+2), *(ptr+3), *(ptr+4), *(ptr+5), *(ptr+6), *(ptr+7), *(ptr+8), *(ptr+9), *(ptr+10), *(ptr+11), *(ptr+12), *(ptr+13), *(ptr+14), *(ptr+15)); 
-    fflush(stdout);
+    n_print ("winfo",3,2,"Authentication Data: %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x\n\n", *ptr, *(ptr+1), *(ptr+2), *(ptr+3), *(ptr+4), *(ptr+5), *(ptr+6), *(ptr+7), *(ptr+8), *(ptr+9), *(ptr+10), *(ptr+11), *(ptr+12), *(ptr+13), *(ptr+14), *(ptr+15)); 
+    
+    if(!graph)    
+      fflush(stdout);
+    
   }
-  else printf ("and there is no authentication header\n");
+  else n_print ("winfo",2,2,"and there is no authentication header\n");
 }
 
 void
@@ -479,7 +544,13 @@ sniff_passwd ()
 
   handle = pcap_open_live (dev, BUFSIZ, 1, -1, errbuf);
   if (pcap_compile (handle, &filter, filter_app, 0, 0) < 0)
+    {
+      if(graph)
+	{
+	endwin();
+	}
     fatal (" pcap_compile: %s\n\n", pcap_geterr (handle));
+    }
   pcap_setfilter (handle, &filter);
   pcap_loop (handle, -1, pack_handler_sniff, NULL);
 }
@@ -546,12 +617,21 @@ auth_pass ()
 			  0, localaddr, inet_addr (rip_group), NULL, 0, l, 0);
 
   if (libnet_toggle_checksum (l, udp, 1) < 0)
-    fatal ("error: %s\n\n", libnet_geterror (l));
+    {
+      if(graph)
+	endwin();
 
+    fatal ("error: %s\n\n", libnet_geterror (l));
+    }
   while (1)
     {
       if ((libnet_write (l)) < 0)
+	{
+	  if(graph)
+	    endwin();
+
 	fatal ("libnet_write(): %s\n\n", libnet_geterror (l));
+	}
       sleep (30);
     }
 }
@@ -598,8 +678,12 @@ check_injection_crypt ()
   peer.sin_port = htons (RIP_PORT);
 
   if ((sock = socket (AF_INET, SOCK_DGRAM, 0)) < 0)
-    fatal (" failed to create socket: %s\n\n", strerror (errno));
+    {
+      if(graph)
+	endwin();
 
+    fatal (" failed to create socket: %s\n\n", strerror (errno));
+    }
   fcntl (sock, F_SETFL, O_NONBLOCK);
 
   sleep (5);
@@ -611,10 +695,15 @@ check_injection_crypt ()
 	  (sock, buffer_pkt,
 	   sizeof (struct rip) + sizeof (struct rip_message) * (w + 1), 0,
 	   (struct sockaddr *) &peer, sizeof (peer)) < 0)
+	{
+	  if(graph)
+	    endwin();
+
 	fatal ("  failed to send packets: %s\n\n", strerror (errno));
+	}
       sleep (1);
       if ((letti = recvfrom (sock, buffer, BUFLEN, 0, NULL, NULL)) < 0)
-	printf ("\nNo Response (try -x)\n");
+	n_print ("princ",1,2,"\nNo Response (try -x)\n");
 
       for (i = 0; i < w; i++)
 	{
@@ -624,17 +713,22 @@ check_injection_crypt ()
 		{
 		  if (ntohl (rippo->metric) == ntohl (routes[3][i]) + 1)
 		    {
-		      printf ("\nRoute %s: Injected Correctly\n",
+		      n_print ("princ",2,2,"\nRoute %s: Injected Correctly\n",
 			      in_ntoa (rippo->ip));
-		      fflush (stdout);
+		      
+		      if(!graph)		      
+			fflush (stdout); 
+		     
 		      break;
 		    }
 		  else
 		    {
-		      printf ("\nRoute %s: Injection Failed ", in_ntoa (rippo->ip));
-		      printf ("(netmask: %s, ", in_ntoa(rippo->netmask));
-		      printf ("gw: %s, metric: %u)\n", in_ntoa(rippo->gateway), ntohl(rippo->metric)); 
-		      fflush (stdout);
+		      n_print ("princ",4,2,"\nRoute %s: Injection Failed ", in_ntoa (rippo->ip));
+		      n_print ("princ",5,2,"(netmask: %s, ", in_ntoa(rippo->netmask));
+		      n_print ("princ",6,2,"gw: %s, metric: %u)\n", in_ntoa(rippo->gateway), ntohl(rippo->metric)); 
+		      if(!graph)
+			fflush (stdout); 
+		      
 		      break;
 		    }
 		}
@@ -644,3 +738,20 @@ check_injection_crypt ()
       sleep (30);
     }
 }
+ 
+void n_print(char *wins, int y, int x, char *string, ...)
+  {
+  char msg[400];
+  int n;
+  va_list ap;
+
+	va_start(ap, string);
+	n = vsnprintf(msg, 400, string, ap);
+	va_end(ap);
+      
+    if(!graph)
+    	fprintf(stdout,"%s",msg);
+	
+    if(graph)
+        ng_print(wins,y,x,msg);
+  }

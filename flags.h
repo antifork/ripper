@@ -6,3 +6,4 @@
 #define	DAEMON  8	
 #define CHECK	16	
 #define PASS	32 
+#define N_MODE  64

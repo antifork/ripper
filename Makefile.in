@@ -4,7 +4,7 @@ CPPFLAGS    = @CPPFLAGS@
 LDFLAGS     = @LDFLAGS@
 LIBS        = @LIBS@  
 #DEFS        = -DHAVE_NET_ETHERNET_H -DLIBNET_LIL_ENDIAN
-DEFS	    = `libnet-config --defines`
+#DEFS	    = `libnet-config --defines`
 INSTALL     = @INSTALL@
 
 prefix      = @prefix@
@@ -15,10 +15,11 @@ datadir     = @datadir@
 srcdir      = @srcdir@
 shtool      = @SHTOOL@
 
-OBJS = main.o ripper.o misc.o neo_getopt.o
+OBJS = main.o ripper.o misc.o neo_getopt.o\
+       ncurses/n_func.o ncurses/n_menu.o ncurses/n_scroll_win.o @NCURSES@ @GETOPT@\
 
 all:	ripper routemake
-	
+
 ripper: $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o ripper $(OBJS) $(LIBS) 
 	@echo
@@ -40,7 +41,7 @@ install:
 	@echo
 
 clean:
-	rm -fR *~ *.bak *.o *.cache *.log ripper config.status config.h stamp-h* routemake Makefile
+	rm -fR *~ *.bak *.o ncurses/*.o *.cache *.log ripper config.status config.h stamp-h* routemake Makefile
 
 distclean: clean
 	rm -f @bindir@/ripper @mandir@/man8/ripper.8

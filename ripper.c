@@ -2,7 +2,6 @@
 #include "flags.h"
 
 static struct neo_options opt[] = {
-
   {'-', 0, 0, NULL, "type:"},
   {'a', required_argument, "a/xarbng", "file", "read routes from this file"},
   {'r', required_argument, "r/xarb", "route", "route to inject"},
@@ -14,11 +13,12 @@ static struct neo_options opt[] = {
   {'s', required_argument, NULL, "address", "spoofed source"},
   {'p', required_argument, NULL, "passwd", "password for autentication"},
   {'+', 0, "s|ar", 0, 0},
+  {'N', no_argument, NULL, NULL, "ncurses mode"},
   {'x', no_argument, "x/xarbngd", "sniff", "sniff plain text password"},
   {'h', no_argument, NULL, NULL, "print help"},
   {'d', no_argument, "d/dc", NULL, "daemonize"},
-  {'c', no_argument, "c/cd", NULL, "check injection"},
-  {'+', 0, "|arbx", 0, 0},
+  {'c', no_argument, "c/cd", NULL, "check injection"}, 
+  //{'+', 0, "|arbx", 0, 0},
   {0, 0, 0, 0, 0}
 };
 
@@ -26,7 +26,7 @@ int
 main (int argc, char **argv)
 {
   unsigned long sp00f = 0;
-  char ch, subnet[16];
+  char ch, subnet[18];
   pthread_t pt, pt1;
 
   credits ();
@@ -73,7 +73,8 @@ main (int argc, char **argv)
 	  rip_file_read (neoptarg);
 	  break;
 	case 'h':
-	  usage (argv[0]);
+	  flags ^= N_MODE;
+	  //usage (argv[0]);
 	  break;
 	case 'd':
 	  flags ^= DAEMON;
@@ -81,44 +82,57 @@ main (int argc, char **argv)
 	case 'c':
 	  flags ^= CHECK;
 	  break;
+	case 'N':
+#ifdef HAVE_LIBNCURSES
+	  flags ^= N_MODE;
+	  graph=1;
+#else
+	  graph=0;
+	  printf("You have not the ncurses support,if you want it\n");
+	  printf("you have to download the library and recompile RIPper\n");
+	  return -1
+#endif
+	    break;
 	}
     }
+   
+  if(flags & N_MODE) return main_graph();	
 
   if (flags & SCAN)
     {
-      printf ("\e[0;31m\tScanner Mode Enabled.\e[0m\n\n");
+      n_print ("princ",1,2,"\e[0;31m\tScanner Mode Enabled.\e[0m\n\n");
       scan_net (subnet);
       exit (0);
     }
  
   if (flags & DAEMON)
     {
-        printf ("\e[0;31m\tWorking in Daemon Mode.\e[0m\n\n");
+        n_print ("princ",1,2,"\e[0;31m\tWorking in Daemon Mode.\e[0m\n\n");
 	if (fork ())
 	exit (0);
     }
   else
-    printf ("\tPress 'q' and Enter to exit\n\n");
+    n_print ("princ",1,2,"\tPress 'q' and Enter to exit\n\n");
 
-  if (flags & SPOOF)
+  if (flags & SPOOF) //nella versione n_menu nn ce ne' bisgono!!
     localaddr = sp00f;
   
   if (flags & PASS)
     {
-        if (flags & CHECK) printf ("\e[0;31m\tPacket Injection Encrypted Mode With Checks Entered.\e[0m\n\n");
+        if (flags & CHECK) n_print ("princ",1,2,"\e[0;31m\tPacket Injection Encrypted Mode With Checks Entered.\e[0m\n\n");
 	if (pthread_create (&pt, NULL, (void *) auth_pass, NULL))
 	fatal ("Cannot create pthread!\n\n");
     }
   if (flags & SNIFF)
     {
-      printf ("\e[0;31m\tSniffer Password Mode Enabled.\e[0m\n\n");
+      n_print ("princ2",1,2,"\e[0;31m\tSniffer Password Mode Enabled.\e[0m\n\n");
       if (pthread_create (&pt, NULL, (void *) sniff_passwd, NULL))
       fatal ("Cannot create pthread!\n\n");
     }
   else
     {
-	if (flags & CHECK) printf ("\e[0;31m\tPacket Injection Mode With Checks Entered.\e[0m\n\n");
-	else printf ("\e[0;31m\tPacket Injection Mode Entered.\e[0m\n\n");	
+	if (flags & CHECK) n_print ("princ",1,2,"\e[0;31m\tPacket Injection Mode With Checks Entered.\e[0m\n\n");
+	else n_print ("princ",1,2,"\e[0;31m\tPacket Injection Mode Entered.\e[0m\n\n");	
 	if (pthread_create (&pt, NULL, (void *) send_fake_rip_response, NULL))
 	fatal ("Cannot create pthread!\n\n");
     }

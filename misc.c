@@ -16,6 +16,7 @@ usage (char *name)
   fprintf (stderr, " d: daemonize		optional\n");
   fprintf (stderr, " c: check route		default: no\n");
   fprintf (stderr, " p: password		optional\n");
+  fprintf (stderr, " N: ncurses mode        optional\n");
   fprintf (stderr, " h: this help\n\n");
   exit (1);
 }

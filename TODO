@@ -1,8 +1,12 @@
 *-*-*-*-*-*-*-*-*-*-*-*
-*   RiPPeR 1.1-beta   *
+*   RiPPeR 1.3-beta   *
 *-*-*-*-*-*-*-*-*-*-*-*
 
 TODO:
 
 * Add the possibility to change the routing table of
   the local machine to avoid doing it manually.
+* Da fare le funx wrappate fatal e da rivedere alcuni printf nella n_main che hanno ancora i colori
+*sistemare la storia della neo_getopt
+*rifare il man
+*smettarla di andare in vacanza troppa gnugna fa male ;) !!! (autoinsulto di click)

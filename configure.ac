@@ -133,6 +133,77 @@ You can download it from official web site: http://www.tcpdump.org/#current
 
 ]))
 
+#
+# -- libncurses support --
+#
+
+filechk="yes"
+AC_CHECK_FILE(/usr/lib/libncurses.a,, filechk="no")
+if test "$filechk" = "no"; then
+ AC_CHECK_FILE(/usr/local/lib/libncurses.a, filechk="yes" ; LDFLAGS="-L/usr/local/lib"; CPPFLAGS="-I/usr/local/include")
+fi
+
+if test "$filechk" = "no"; then AC_MSG_ERROR([
+
+Libncurses archive file (libncurses.a) not found in /usr or /usr/local!
+
+Ncurses library (*) not found in your system.
+You can download it from official web site: http://www.gnu.org/software/ncurses/ncurses.html
+(*): CRT screen handling and optimization package
+
+Building without ncurses menu support (-G flag will doesn't work)
+
+])
+fi
+
+ENABLE_NCRS="no"
+AC_CHECK_LIB(ncurses, initscr, ENABLE_NCRS="yes"; NCURSES=ncurses/n_ripper.o; LIBS="-lncurses $LIBS"; AC_DEFINE(HAVE_LIBNCURSES), AC_MSG_RESULT([
+
+Ncurses library (*) not found in your system.
+You can download it from official web site: http://www.gnu.org/software/ncurses/ncurses.html
+(*): CRT screen handling and optimization package
+
+Building without ncurses menu support (-G flag will doesn't work)
+
+]))
+
+#
+#  --lmenu support--
+#
+
+filechk="yes"
+AC_CHECK_FILE(/usr/lib/libmenu.a,, filechk="no")
+if test "$filechk" = "no"; then
+ AC_CHECK_FILE(/usr/local/lib/libmenu.a, filechk="yes" ; LDFLAGS="-L/usr/local/lib"; CPPFLAGS="-I/usr/local/include")
+fi
+
+if test "$filechk" = "no"; then AC_MSG_ERROR([
+
+Menu archive file (libncurses.a) not found in /usr or /usr/local!
+
+Menu library (*) not found in your system.
+You can download it from official web site: http://www.gnu.org/software/ncurses/ncurses.html
+(*): CRT screen handling and optimization package
+
+Building without ncurses menu support (-G flag will doesn't work)
+])
+
+fi
+
+ENABLE_NCRS="no"
+AC_CHECK_LIB(menu, menu_opts_off, ENABLE_NCRS="yes"; MENU=ncurses/n_menu.o; LIBS="-lmenu $LIBS"; AC_DEFINE(HAVE_LIBMENU), AC_MSG_RESULT([
+
+Menu library (*) not found in your system.
+You can download it from official web site: http://www.gnu.org/software/ncurses/ncurses.html
+(*): CRT screen handling and optimization package
+
+Building without ncurses menu support (-G flag will doesn't work)
+
+]))
+
+
+
+
 ############################
 # Checks for linux pthread #
 ############################
