@@ -69,3 +69,13 @@ subnet/prefix.
 Examples: 192.168.0.0/24, 172.16.0.0/16, 10.0.0.0/8
 Be careful using this option, becouse it generates a lot of
 traffic!!!
+
+-- [ Troubleshooting ] --
+
+Why RiPPeR doesen't compile on my OpenBSD 3.3 box?
+
+The libnet team hasn't yet released a version of libnet that
+works with OpenBSD 3.3 so even RiPPeR doesen't work on this 
+platform. When a new version of libnet will be released, 
+we will fix this bothering bug. In the meantime you can use
+RiPPeR in a OpenBSD 3.2 box.

