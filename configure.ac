@@ -1,6 +1,6 @@
 ################################################### 
 #                                                 #
-# Ripper - RIPV2 Packet injection                 #
+# ripper - RIPV2 Packet injection                 #
 #	                                          #
 # configure.ac - written by click@spine-group.org #
 #                         mydecay@spine-group.org # 

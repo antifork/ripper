@@ -12,6 +12,11 @@
 #include "bpf.h"
 #include "neo_getopt.h"
 
+#ifdef __OpenBSD__
+#include <netinet/ip.h>
+#include <netinet/udp.h>
+#endif
+
 #define BUFLEN 1500
 #define RIP_PORT 520
 #define RIP_GROUP "224.0.0.9"

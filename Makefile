@@ -1,5 +1,5 @@
 CC          = gcc
-CFLAGS      = -Wall -O2  
+CFLAGS      = -Wall -O2 -D __Linux__  
 CPPFLAGS    =    
 LDFLAGS     = 
 LIBS        = -lpthread -lpcap -lnet   
@@ -19,7 +19,7 @@ OBJS = main.o ripper.o misc.o neo_getopt.o
 
 all:	ripper routemake
 	
-ripper:	$(OBJS)
+ripper: $(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o ripper $(OBJS) $(LIBS) 
 	@echo
 	@echo "Successful! Now type make install"

@@ -283,16 +283,45 @@ void
 pack_handler (u_char * args, const struct pcap_pkthdr *header,
 	      const u_char * packet)
 {
-  struct iphdr *ip;
-  struct rip_message *rip_head;
+#ifdef __Linux__
+  struct iphdr *ipr;
+#endif /*Linux*/ 
   
-  ip = (struct iphdr *) (packet + sizeof_datalink (handle));
+#ifdef __OpenBSD__
+  struct ip *ipr;
+#endif /*OpenBSD*/
+
+  struct rip_message *rip_head;
+
+#ifdef __Linux__  
+  ipr = (struct iphdr *) (packet + sizeof_datalink (handle));
+
+#endif /*Linux*/
+
+#ifdef __OpenBSD__
+  ipr = (struct ip *) (packet + sizeof_datalink (handle));
+
+#endif /*OpenBSD*/
+
+#ifdef __Linux__
   rip_head = (struct rip_message *) (packet + sizeof_datalink (handle) +
 				     sizeof (struct iphdr) + sizeof (struct udphdr) + 4);
+#endif /*Linux*/
 
+#ifdef __OpenBSD__
+  rip_head = (struct rip_message *) (packet + sizeof_datalink (handle) +
+				     sizeof (struct ip) + sizeof (struct udphdr) + 4);
+#endif /*OpenBSD*/
 
-  printf (" HOST %s SPEAKS RIPv%i!!\n", in_ntoa ((unsigned long) ip->saddr),
+#ifdef __Linux__
+  printf (" HOST %s SPEAKS RIPv%i!!\n", in_ntoa ((unsigned long) ipr->saddr),
 	  *(packet + sizeof_datalink (handle) + sizeof (struct iphdr) + sizeof (struct udphdr) +1));
+#endif /*Linux*/
+
+#ifdef __OpenBSD__
+ printf (" HOST %s SPEAKS RIPv%i!!\n", in_ntoa ((unsigned long) ipr->ip_src.s_addr),
+	 *(packet + sizeof_datalink (handle) + sizeof (struct ip) + sizeof (struct udphdr) +1));
+#endif /*OpenBSD*/
   printf (" *-*-*-*-*-*-*-*-*-*-*-*-*\n");
   for (; (u_long) * (&rip_head) < (u_long) (packet) + header->caplen; rip_head++)
     {
@@ -403,11 +432,22 @@ pack_handler_sniff (u_char * args, const struct pcap_pkthdr *header,
 		    const u_char * packet)
 {
   struct authentication *auth;
-
+#ifdef __Linux__
   auth =
     (struct authentication *) (packet + sizeof_datalink (handle) +
 			       sizeof (struct iphdr) +
 			       sizeof (struct udphdr) + sizeof (struct rip));
+
+#endif /*Linux*/
+
+#ifdef __OpenBSD__
+  auth =
+    (struct authentication *) (packet + sizeof_datalink (handle) +
+			       sizeof (struct ip) +
+			       sizeof (struct udphdr) + sizeof (struct rip));
+
+#endif /*OpenBSD*/
+
   printf ("Packet Examined... ");
 
   if ((auth->flag == 0xFFFF) && (auth->auth_type == htons (2)))
