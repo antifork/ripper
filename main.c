@@ -206,11 +206,10 @@ send_fake_rip_response()
 
 }
 
-//the sysctl(2) for checking
-	ip forward
-		// doesn 't seem to work propertly, so using proc fs
-	void
-	     check_forward()
+//the sysctl(2) for checking ip forward doesn 't seem to work propertly, so using proc fs
+
+void
+check_forward()
 {
 	FILE *fd;
 	char c;
