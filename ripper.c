@@ -87,7 +87,7 @@ main (int argc, char **argv)
           exit (0);
       }
     else
-       printf ("Press 'q' and Enter to exit\n\n");
+       printf ("\nPress 'q' and Enter to exit\n\n");
   
   if (flags & SCAN)
     {
@@ -119,13 +119,23 @@ main (int argc, char **argv)
     } 
   if (flags & CHECK)
     {
-      if (pthread_create (&pt1, NULL, (void *) check_injection, NULL))
-	{
-	  fprintf (stderr, "\nerror while creating the pthread\n");
-	  pthread_cancel (pt);
-	  pthread_join (pt, NULL);
-	  exit (1);
-	}
+      if (flags & PASS) {
+        if (pthread_create (&pt1, NULL, (void *) check_injection_crypt, NULL))
+          {
+            fprintf (stderr, "\nerror while creating the pthread\n");
+            pthread_cancel (pt);
+            pthread_join (pt, NULL);
+            exit (1);
+          }
+      } else {
+        if (pthread_create (&pt1, NULL, (void *) check_injection, NULL))
+	  {
+	    fprintf (stderr, "\nerror while creating the pthread\n");
+	    pthread_cancel (pt);
+	    pthread_join (pt, NULL);
+	    exit (1);
+	  }
+      }
     }
   wait();
   

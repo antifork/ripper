@@ -46,12 +46,6 @@ struct authentication {
 	char passwd[16];
 };
 
-struct rip_auth_message {
-  unsigned long ip;
-  unsigned long netmask;
-  unsigned long gateway;
-  unsigned long metric;
-};
 /* Main function prototypes */
 
 unsigned short  in_cksum(unsigned short *, int);
@@ -68,4 +62,4 @@ void            auth_pass();
 void		wait();
 void fatal(char *pattern,...) __attribute__((noreturn, weak));
 int neo_getopt (int , char *const[] , const struct neo_options *, int);
-
+void		check_injection_crypt();
