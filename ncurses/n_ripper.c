@@ -29,18 +29,27 @@ int main_graph(void)
    int key, c;
    int ris;
    int l;
+   int button = 0;
+
+   pthread_t pt2;
 
    key = c = 0xff;/*unuse value*/
    ris = 0;
    l = 3;
    
    init_curs();
-   getmaxyx(stdscr,row,col);
-   if(row<24 || col<78)
+      getmaxyx(stdscr,row,col);
+   if(row<31 || col<85)
      {
-	endwin();
-	printf("\nSorry,you must have a screen of at least 85 colons and 31 rows\n\n");
-	exit(1);
+   	endwin();
+   	printf("\nSorry,you must have a screen of at least 85 colons and 31 rows\n\n");
+   	exit(1);
+    }
+
+   if (pthread_create (&pt2, NULL, (void *) control_n, NULL))
+     {
+       endwin();
+       fatal ("Cannot create pthread!\n\n");
      }
 
    if (princ == NULL)
@@ -66,16 +75,21 @@ int main_graph(void)
 
    title(); 
 
-   nmenu(); 
+   nmenu();
 
    do
      {
 
 	redrawscrollwin(princ, 0);
 	redrawscrollwin(winfo, 0);
-
-	key=getch();
-
+	if(!button)
+	  {
+	    key=KEY_F(1);
+	  }
+	else
+	  {
+	    key=getch();
+	  }
 	switch(key)
 	  {
 	   case KEY_F(1):
@@ -172,6 +186,7 @@ int main_graph(void)
 
 	       }
 	     out=0;
+             button++;
 	     break;
 
 	   case KEY_F(2):

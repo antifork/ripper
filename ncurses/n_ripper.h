@@ -73,6 +73,7 @@ int inject_menu(void);
 int help_menu(void);
 void pop_up_win(void);
 void init_scr(void);
+void control_n(void);
 
 /* insert functions */
 int authors(void);

@@ -26,6 +26,8 @@
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof(a[0]))
 #define CTRLD 	4
 
+char * in_ntoa (unsigned long in);
+
 unsigned long sp00f;
 char ch, subnet[18]; 
 pthread_t pt, pt1;
@@ -309,6 +311,7 @@ int inject_menu()
    MENU *my_menu;
    WINDOW *my_menu_win;
    int n_choices, i;
+   char net_mask[16]="255.255.255.255";
    ris = 0;
 
 	/* Create items */
@@ -390,6 +393,12 @@ int inject_menu()
 	       noecho();
 	       delwin(pop_up);
 	       redrawscrollwin(princ,0);
+	       if(!strncmp (net_mask,in_ntoa(routes[0][0]),16))
+		 {
+		   werase(winfo->win);
+		   redrawscrollwin(winfo,0);
+		   mvwprintw(winfo->win,2,2,"** Wrong IP route Address!! **");
+		 }
 	       return(0);
 	       break;
 	     
