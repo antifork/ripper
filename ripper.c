@@ -101,6 +101,7 @@ main (int argc, char **argv)
   if (flags & SCAN)
     {
       n_print ("princ",1,2,"\e[0;31m\tScanner Mode Enabled.\e[0m\n\n");
+      n_print ("princ",2,2,"** press ^c to exit **\n\n");
       scan_net (n_net);
       exit (0);
     }
