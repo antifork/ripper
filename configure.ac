@@ -145,13 +145,12 @@ case "$target" in
 
 	]))
 	
-	CFLAGS="-Wall -O2"
+	CFLAGS="-Wall -O2 -D __Linux__"
 	;;
 *bsd*)
-	CFLAGS="-Wall -O2 -pthread"
+	CFLAGS="-Wall -O2 -D __OpenBSD__ -pthread"
 	;;
 esac	
-
 ##############################################
 # Checks for headers and common libs/headers #
 ##############################################
