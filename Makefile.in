@@ -17,7 +17,7 @@ shtool      = @SHTOOL@
 
 OBJS = main.o ripper.o misc.o neo_options.o
 
-all:	routemake ripper
+all:	ripper routemake
 	
 ripper:	$(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o ripper $(OBJS) $(LIBS) 

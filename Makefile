@@ -2,12 +2,12 @@ CC          = gcc
 CFLAGS      = -Wall -O2  
 CPPFLAGS    =    
 LDFLAGS     = 
-LIBS        = -lpcap -lnet -lpthread   
+LIBS        = -lpthread -lpcap -lnet   
 #DEFS        = -DHAVE_NET_ETHERNET_H -DLIBNET_LIL_ENDIAN
 DEFS	    = `libnet-config --defines`
 INSTALL     = @INSTALL@
 
-prefix      = /usr
+prefix      = /usr/local
 exec_prefix = ${prefix}
 bindir      = ${exec_prefix}/bin
 mandir      = ${prefix}/man
@@ -17,7 +17,7 @@ shtool      = @SHTOOL@
 
 OBJS = main.o ripper.o misc.o neo_options.o
 
-all:	routemake ripper
+all:	ripper routemake
 	
 ripper:	$(OBJS)
 	$(CC) $(CFLAGS) $(LDFLAGS) -o ripper $(OBJS) $(LIBS) 
