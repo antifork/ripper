@@ -454,8 +454,21 @@ pack_handler_sniff (u_char * args, const struct pcap_pkthdr *header,
 
   if ((auth->flag == 0xFFFF) && (auth->auth_type == htons (2)))
     printf ("password found == %s\n", auth->passwd);
-  else
-    printf ("and there is no authentication header\n");
+  else if ((auth->flag == 0xFFFF) && (auth->auth_type == htons (3))) {
+    unsigned char *ptr;
+    unsigned short *length;
+    length = (unsigned short *)auth;
+    length+=2;
+    ptr = (unsigned char *)auth;
+    ptr+=8;
+    printf ("MD5 password found\n");
+    printf ("Sequence Number: %x %x %x %x\n", *ptr, *(ptr+1), *(ptr+2), *(ptr+3));
+    ptr+=htons(*length);
+    ptr-=8;
+    printf ("Authentication Data: %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x %x\n\n", *ptr, *(ptr+1), *(ptr+2), *(ptr+3), *(ptr+4), *(ptr+5), *(ptr+6), *(ptr+7), *(ptr+8), *(ptr+9), *(ptr+10), *(ptr+11), *(ptr+12), *(ptr+13), *(ptr+14), *(ptr+15)); 
+    fflush(stdout);
+  }
+  else printf ("and there is no authentication header\n");
 }
 
 void
