@@ -1,18 +1,19 @@
-From 1.0-beta to 1.1-beta
+General Changes
 
 1] Features Modifications:
 
+-- Added (still higly experimental) ncurses support
 -- Added subnet scan to find RIPv2 routers
 -- Added the possibility to inject multiple routes
 -- Added the possibility to sniff passwords
 
 2] Code Modifications:
 
+-- HUGE code cleanup
+-- Indentation
 -- Converted all the code from standard socket programming
    to libpcap and libnet. 
--- Some minor modifications
--- Command line argument handling code upgraded.
 
 3] Misc Changes:
 
--- routemake(8) will be shipped with RiPPeR. It generates route.conf.
+-- routemake(8) will be shipped with RiPPeR. It generates route.conf

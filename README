@@ -1,11 +1,11 @@
 *-*-*-*-*-*-*-*-*-*-*-*
-*   RiPPeR 1.1-beta   *
+*    RiPPeR 0.1.4     *
 *-*-*-*-*-*-*-*-*-*-*-*
 
 * Which platforms RiPPeR supports?
 
 As now, RiPPeR can be compiled only under Linux. More precisely it has 
-been tested on kernel 2.4.19, but should work perfectly on 2.5.x,
+been tested on kernel 2.4.19, but should work perfectly on 2.6.x,
 please report your experience :)
 
 * What this tool does?
@@ -77,10 +77,21 @@ as argument.
 
 -- [ Troubleshooting ] --
 
-Why RiPPeR doesen't compile on my OpenBSD 3.3 box?
+* Why RiPPeR doesen't compile on my OpenBSD 3.3 box?
 
 The libnet team hasn't yet released a version of libnet that
 works with OpenBSD 3.3 so even RiPPeR doesen't work on this 
 platform. When a new version of libnet will be released, 
 we will fix this bothering bug. In the meantime you can use
 RiPPeR in a OpenBSD 3.2 box.
+
+* Why doesen't RiPPeR find RIPv2 routers?
+
+There can be many reasons for this. First of all many routers
+even if the responde correcty to the rip request the send also
+a udp port unreacheable, and so your gw doesen't forward the
+packet to you. Start a sniffer on you gw and see what happen.
+The second reason is the different implementation of the RIPv2
+protocol. Some routers can ignore our query becouse they don't
+respect its standards. In this case let us know the model of
+the router and we will work on it.

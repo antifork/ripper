@@ -1,7 +1,6 @@
-..
-.TH RiPPeR "8" "20030120" "RiPPeR 1.2-beta"
+.TH RiPPeR "8" "20030120" "RiPPeR 0.1.3-beta"
 .SH NAME
-.B RiPPeR 1.2-beta \- Routing Table Corrupter 
+.B RiPPeR 0.1.4 \- Routing Table Corrupter 
 
 .SH SYNOPSIS
 .B ripper [-r route] [-m metric] [-g gateway] [-n netmask] [-i interface] [-p password] [-x sniff passowrd] [-a read file] [-s spoofed address] [-dfch]
@@ -35,6 +34,10 @@ This will inject routes read in file passed as argument. This file is generated
 using routemake.
 .br
 .TP
+\fB\-e\fR
+Insted of sending packets to RIPv2 multicast address, unicast them to remote peers.
+.br
+.TP
 \fB\-m <metric>\fR
 Set the metric associated with the route. This argument is mandatory if
 you don't specify -a option.
@@ -62,7 +65,7 @@ Select the password for the authentication
 .br
 .TP
 \fB\-x <sniff password>\fR
-Sniff the RIPV2 password reading the header packet
+Sniff the LAN for RIPv2 packets and show the password
 .br
 .TP
 \fB\-a <read file>\fR
@@ -87,13 +90,15 @@ is overriden by -d.
 .br
 .TP
 \fB\-N\fR
-It runs with the ncurses mode
+Runs RiPPeR in ncurses mode.
+.TP
 \fB\-h\fR
 Shows help.
 .br
 
 .SH PLATFORMS
-Linux 2.0.x  2.2.x  2.4.x
+Linux 2.2.x  2.4.x  2.6.x
+OpenBSD 3.2
 .PP
 
 .SH AVAILABILITY
