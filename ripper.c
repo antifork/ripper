@@ -26,7 +26,7 @@ int
 main (int argc, char **argv)
 {
   unsigned long sp00f = 0;
-  char ch, subnet[18];
+  char ch;
   pthread_t pt, pt1;
 
   credits ();
@@ -39,7 +39,7 @@ main (int argc, char **argv)
       switch (ch)
 	{
 	case 'b':
-	  strncpy (subnet, neoptarg, 19);
+	  strncpy (n_net, neoptarg, 19);
 	  flags ^= SCAN;
 	  break;
 	case 'x':
@@ -101,7 +101,7 @@ main (int argc, char **argv)
   if (flags & SCAN)
     {
       n_print ("princ",1,2,"\e[0;31m\tScanner Mode Enabled.\e[0m\n\n");
-      scan_net (subnet);
+      scan_net (n_net);
       exit (0);
     }
  

@@ -209,7 +209,7 @@ int option_menu()
 	       mvwprintw(pop_up,3,2,"Example 192.168.0.0/24");
 	       wmove(pop_up,5,2);
 	       echo();
-	       wgetnstr(pop_up, subnet, 19);
+	       wgetnstr(pop_up, n_net, 19);
 	       noecho();
 	       if (strcmp (subnet, "NULL")) /* != NULL */
 		 {
@@ -218,10 +218,20 @@ int option_menu()
 		   redrawscrollwin(princ,0);
 		   werase(princ->win);
 		   n_print("princ",1,2,"Scanner mode enabled");
-		   scan_net(subnet);
+                   n_print("winfo",1,2,"**Press q to shut down scan tread**");
+		   if (pthread_create (&pt, NULL, (void *) scan_net, NULL))
+		     n_print("winfo",4,2,"Cannot create pthread scan_net())");
+
+		   while ((char) getch () != 'q');
+		   
+		   werase(princ->win);
+		   n_print("princ",1,2,"Shut down net_scan thread");
+		   pthread_cancel(pt);
+		   pthread_join (pt, NULL);
 		   werase(winfo->win);
 		   n_print("winfo",1,2,"End of scan");
-		   return (0);
+		   return 0;
+		         
 		 } 
 	       else 	
 		 {

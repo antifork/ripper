@@ -50,6 +50,7 @@ char n_gateway[16];
 char n_netmask[16];
 char routemake_file[50];
 
+char n_net[18];
 /*end*/
 
 struct rip_message
@@ -84,7 +85,7 @@ void credits ();
 void send_fake_rip_response ();
 void check_injection ();
 void init_all ();
-int scan_net (char *);
+int scan_net ();
 void rip_file_read (char *);
 void sniff_passwd ();
 void auth_pass ();
@@ -96,5 +97,6 @@ void n_print(char *wins, int y, int x, char *string, ...);
 int ng_print(char *wins, int y, int x, char *string);
 #ifdef HAVE_LIBNCURSES
 int main_graph(void);
+int n_scan_net(char *);
 #endif
 /*end*/

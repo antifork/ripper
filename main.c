@@ -317,7 +317,7 @@ pack_handler (char *packet, int readlen, unsigned long ip)
   struct rip_message *rip_head;
 
   rip_head = (struct rip_message *) (packet + 4);
-printf("packet handler\n");
+  printf("packet handler\n");
   n_print ("princ",1,2," HOST %s SPEAKS RIPv%i!!\n", in_ntoa(htonl(ip)),
 	  *(packet + 1));
 
@@ -334,7 +334,7 @@ printf("packet handler\n");
 }
 
 int
-scan_net (char *net)
+scan_net (void)
 {
   char *prefix;
   int sock[0xff], readlen;
@@ -348,11 +348,12 @@ scan_net (char *net)
   fd_set rfd;
   struct timeval tv;
   char buffer[BUFLEN];
+  int n_butt=8;
 
   peers.sin_family = AF_INET;
   peers.sin_port = htons (RIP_PORT);
 
-  if ((prefix = memchr (net, '/', strlen (net))) == NULL) {
+  if ((prefix = memchr (n_net, '/', strlen (n_net))) == NULL) {
       if(graph) {
 	  n_print("princ",1,2,"You must use the subnet/prefix format!!!");
 	  return (0);
@@ -361,7 +362,7 @@ scan_net (char *net)
   }
   
   *(prefix) = '\0';
-  start = inet_network (net);
+  start = inet_network (n_net);
   end = start + (1 << (32 - atoi (++prefix)));
 
   bzero (&rip_scan, sizeof (rip_scan));
@@ -382,10 +383,16 @@ scan_net (char *net)
 		if(!((start+i) & 0xff))
 			continue;
 		if ((sock[i] = socket (AF_INET, SOCK_DGRAM, 0)) < 0)
+		  {
+		    if(graph)
+		      {
+			endwin();
 			fatal("unable to create socket\n");
+		      }
+		  }
 		FD_SET(sock[i], &rfd);
   	}
-	printf("Sending Packets: ");
+	n_print("princ",3,2,"Sending Packets: ");
 	for (i = 0; (start+i < end) && (i < 0xff); i++) {
                 if (((start+i) & 0xff) == 0xff)
         		continue;        
@@ -393,11 +400,11 @@ scan_net (char *net)
                 	continue;
 		peers.sin_addr.s_addr = htonl (start+i);
 		if (sendto (sock[i], &rip_scan, sizeof (rip_scan), 0, (struct sockaddr *) &peers, sizeof (peers)) < 0)
-			printf("error sending frame to %s\n", in_ntoa(peers.sin_addr.s_addr));
+			n_print("princ",4,2,"error sending frame to %s\n", in_ntoa(peers.sin_addr.s_addr));
 	}
-	printf(" Packets From %s to ", in_ntoa(htonl(start)));
-	printf(" %s Sent!\n", in_ntoa(htonl(start+i))); 
-	printf("Now Listening..\n");
+	n_print("princ",5,1," Packets From %s to ", in_ntoa(htonl(start)));
+	n_print("princ",6,1," %s Sent!\n", in_ntoa(htonl(start+i))); 
+	n_print("princ",7,2,"Now Listening..\n");
 	fflush(stdout);
 	if ((j = select(sock[0xff]+1, &rfd, NULL, NULL, &tv)) > 0) { 
 		for (i = 0; (start+i < end) && (i < 0xff) && (j != 0); i++) {
@@ -407,7 +414,8 @@ scan_net (char *net)
 	                        continue;
 			if (FD_ISSET(sock[i], &rfd)) {
 				memset(buffer, 0, BUFLEN);
-				printf("%s\n", in_ntoa(htonl(start+i)));
+				n_print("princ",n_butt,2,"%s\n", in_ntoa(htonl(start+i)));
+				n_butt++;
 				if ((readlen = read(sock[i], buffer, BUFLEN)) > 0) {
 					pack_handler(buffer, readlen, start+i);
 					j--;
@@ -724,3 +732,4 @@ void n_print(char *wins, int y, int x, char *string, ...)
     if(graph)
         ng_print(wins,y,x,msg);
   }
+
