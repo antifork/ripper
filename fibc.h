@@ -21,6 +21,8 @@ unsigned long	localaddr, localnet;
 extern int 	errno;
 int 		w;
 unsigned int 	routes[4][25];
+pthread_t pt, pt1;
+unsigned long flags;
 
 struct rip_message {
   unsigned short  family;
@@ -37,6 +39,12 @@ struct rip {
   unsigned short  domain;
 };
 
+struct authentication {
+	unsigned short flag;
+	unsigned short auth_type;
+	char passwd[16];
+};
+
 /* Main function prototypes */
 
 unsigned short  in_cksum(unsigned short *, int);
@@ -48,6 +56,7 @@ void            check_injection();
 void            init_all();
 int 		scan_net(char *);
 void		rip_file_read(char *);
+void		sniff_passwd();
+void		wait();
 void fatal(char *pattern,...) __attribute__((noreturn, weak));
 int neo_getopt (int , char *const[] , struct neo_options *, int);
-

@@ -3,9 +3,10 @@
 void
 usage (char *name)
 {
-  fprintf (stderr, " Usage: %s -b -r [-a] [-s] -m -g -n [-d] -f -c\n\n",
+  fprintf (stderr, " Usage: %s -b -x -r [-a] [-s] -m -g -n [-d] -f -c\n\n",
 	   name);
   fprintf (stderr, " b: net scanner\n");
+  fprintf (stderr, " x: sniff password\n");
   fprintf (stderr, " r: route IP		mandatory\n");
   fprintf (stderr, " a: read file		optional\n");
   fprintf (stderr, " s: spoofed source	optional\n");

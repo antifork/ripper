@@ -4,13 +4,14 @@ From 1.0-beta to 1.1-beta
 
 -- Added subnet scan to find RIPv2 routers
 -- Added the possibility to inject multiple routes
+-- Added the possibility to sniff passwords
 
 2] Code Modifications:
 
 -- Converted all the code from standard socket programming
    to libpcap and libnet. 
-
 -- Some minor modifications
+-- Command line argument handling code upgraded.
 
 3] Misc Changes:
 

