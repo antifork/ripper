@@ -1,10 +1,10 @@
 ..
-.TH RiPPeR "8" "20030120" "RiPPeR 1.1-beta"
+.TH RiPPeR "8" "20030120" "RiPPeR 1.2-beta"
 .SH NAME
-.B RiPPeR 1.1-beta \- Routing Table Corrupter 
+.B RiPPeR 1.2-beta \- Routing Table Corrupter 
 
 .SH SYNOPSIS
-.B ripper [-r route] [-m metric] [-g gateway] [-n netmask] [-i interface] [-s spoofed address] [-dfch]
+.B ripper [-r route] [-m metric] [-g gateway] [-n netmask] [-i interface] [-p password] [-x sniff passowrd] [-a read file] [-s spoofed address] [-dfch]
 
 .SH DESCRIPTION
 RiPPeR is a RIPv2 routing table corrupter. It can inject evil routes on a 
@@ -54,7 +54,20 @@ options. This argument is optional.
 .br
 .TP
 \fB\-i <interface>\fR
-Select the interface. Default is eth0. 
+Select the interface. Default is eth0.
+.br
+.TP
+\fB\-p <password>\fR
+Select the password for the authentication
+.br
+.TP
+\fB\-x <sniff password>\fR
+Sniff the RIPV2 password reading the header packet
+.br
+.TP
+\fB\-a <read file>\fR
+With this option you can inject multi routes reading the IP adresses form
+a file (usually ripper.conf) created with routemake 
 .br
 .TP
 \fB\-d\fR
