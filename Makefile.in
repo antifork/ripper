@@ -40,7 +40,7 @@ install:
 	@echo
 
 clean:
-	rm -fR *~ *.bak *.o *.cache *.log ripper config.status config.h stamp-h* routemake
+	rm -fR *~ *.bak *.o *.cache *.log ripper config.status config.h stamp-h* routemake Makefile
 
 distclean: clean
 	rm -f @bindir@/ripper @mandir@/man8/ripper.8
