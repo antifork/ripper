@@ -409,7 +409,7 @@ rip_file_read (char *filez)
   int i;
 
   if ((OPENF = fopen (filez, "r+")) == NULL)
-    fatal ("Unable to open %s\n.", filez);
+    fatal ("Unable to open %s.\n", filez);
 
   fscanf (OPENF, "%u\n", &w);
 
@@ -436,7 +436,7 @@ auth = (struct authentication *)(packet + sizeof_datalink(handle) + sizeof(struc
 printf("Packet Examined... ");
 
 if ((auth->flag == 0xFFFF) && (auth->auth_type == htons(2)))
-	printf("password found = %s\n", auth->passwd);
+	printf("password found == %s\n", auth->passwd);
 else printf("and there is no authentication header\n");
 }
 

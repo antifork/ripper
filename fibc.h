@@ -10,7 +10,7 @@
 #include <pcap.h>
 #include <errno.h>
 #include "bpf.h"
-#include "neo_options.h"
+#include "neo_getopt.h"
 
 #define BUFLEN 1500
 #define RIP_PORT 520
@@ -59,4 +59,5 @@ void		rip_file_read(char *);
 void		sniff_passwd();
 void		wait();
 void fatal(char *pattern,...) __attribute__((noreturn, weak));
-int neo_getopt (int , char *const[] , struct neo_options *, int);
+int neo_getopt (int , char *const[] , const struct neo_options *, int);
+

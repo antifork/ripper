@@ -46,18 +46,31 @@ enum args {
 struct neo_options {
     int opt;
     enum args has_arg;
-    char *depend;
+    char *mask;
     char *arg;
     char *usage;
 };
 
+
 typedef unsigned char REG;
 
-int neo_usage (FILE *, char *, struct neo_options *);
-int neo_showdepend (FILE *, struct neo_options *);
-int neo_getopt (int , char *const[] , struct neo_options *, int);
+int neo_usage (FILE *, char *, const struct neo_options *);
+int neo_showdepend (FILE *, const struct neo_options *);
+int neo_getopt (int , char *const[] , const struct neo_options *, int);
 
-#ifdef NEO_LIBRARY
+#ifndef NEO_LIBRARY
+
+extern int neopterr;     		/* if error message should be printed */
+extern int neoptind;               	/* index into parent argv vector */
+extern int neoptopt;                   	/* character checked for validity */
+extern int neoptreset;                 	/* reset neo_getopt */
+extern char *neoptarg;                 	/* argument associated with option */
+
+extern int neoverbose;			/* control the otuput fashoin:0 = classic, 1 = verbose */
+
+#else
+#define AND_MASK        1
+#define OR_MASK         2
 
 #define bit         >>3
 #define kbit        <<7
@@ -68,10 +81,10 @@ int neo_getopt (int , char *const[] , struct neo_options *, int);
 #define mbyte       <<20
 #define gbyte       <<30
 
-#define REG_BS(r,b)      ( r[b>>3] |=   1<<(b&7) )
-#define REG_BR(r,b)      ( r[b>>3] &= ~ 1<<(b&7) )
-#define REG_BT(r,b)      ( r[b>>3]  &   1<<(b&7) )
-#define REG_BN(r,b)      ( r[b>>3] ^=   1<<(b&7) )
+#define REG_BS(r,b)      ( r[((b)&0x7f)>>3] |=   1<<((b)&7) )
+#define REG_BR(r,b)      ( r[((b)&0x7f)>>3] &= ~ 1<<((b)&7) )
+#define REG_BT(r,b)      ( r[((b)&0x7f)>>3]  &   1<<((b)&7) )
+#define REG_BN(r,b)      ( r[((b)&0x7f)>>3] ^=   1<<((b)&7) )
 
 
 #define REG_FOREACH(len)	int i; for(i=0;i<len ;i++)

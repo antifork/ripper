@@ -15,7 +15,7 @@ datadir     = ${prefix}/share
 srcdir      = .
 shtool      = @SHTOOL@
 
-OBJS = main.o ripper.o misc.o neo_options.o
+OBJS = main.o ripper.o misc.o neo_getopt.o
 
 all:	ripper routemake
 	
