@@ -619,8 +619,9 @@ check_injection_crypt ()
 		    }
 		  else
 		    {
-		      printf ("\nRoute %s: Injection Failed\n",
-			      in_ntoa (rippo->ip));
+		      printf ("\nRoute %s: Injection Failed ", in_ntoa (rippo->ip));
+		      printf ("(netmask: %s, ", in_ntoa(rippo->netmask));
+		      printf ("gw: %s, metric: %u)\n", in_ntoa(rippo->gateway), ntohl(rippo->metric)); 
 		      fflush (stdout);
 		      break;
 		    }
