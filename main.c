@@ -347,7 +347,7 @@ listent (char *net)
   if (pcap_compile (handle, &filter, filter_app, 0, localnet) < 0)
     fatal (" pcap_compile: %s\n\n", pcap_geterr (handle));
   pcap_setfilter (handle, &filter);
-  pcap_dispatch (handle, -1, pack_handler, NULL);
+  pcap_loop (handle, -1, pack_handler, NULL);
 }
 
 int
@@ -468,8 +468,7 @@ sniff_passwd ()
   if (pcap_compile (handle, &filter, filter_app, 0, 0) < 0)
     fatal (" pcap_compile: %s\n\n", pcap_geterr (handle));
   pcap_setfilter (handle, &filter);
-  while (1)
-    pcap_dispatch (handle, -1, pack_handler_sniff, NULL);
+  pcap_loop (handle, -1, pack_handler_sniff, NULL);
 }
 
 void

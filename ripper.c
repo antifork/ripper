@@ -31,7 +31,8 @@ main (int argc, char **argv)
 
   credits ();
   init_all ();
-
+  if (argc < 2) usage(argv[0]);
+  
   neo_getopt (argc, argv, opt, OPT_NOW);
   while ((ch = neo_getopt (argc, argv, opt, OPT_DELAYED)) != EOF)
     {
@@ -85,45 +86,47 @@ main (int argc, char **argv)
 
   if (flags & SCAN)
     {
+      printf ("\e[0;31m\tScanner Mode Enabled.\e[0m\n\n");
       scan_net (subnet);
       exit (0);
     }
  
   if (flags & DAEMON)
     {
-      if (fork ())
+        printf ("\e[0;31m\tWorking in Daemon Mode.\e[0m\n\n");
+	if (fork ())
 	exit (0);
     }
   else
-    printf ("\nPress 'q' and Enter to exit\n\n");
+    printf ("\tPress 'q' and Enter to exit\n\n");
 
-//  if ((!routes[0][0]) && (!(flags & SNIFF)))
-//    usage (argv[0]);
-  
   if (flags & SPOOF)
     localaddr = sp00f;
   
   if (flags & PASS)
     {
-      if (pthread_create (&pt, NULL, (void *) auth_pass, NULL))
+        if (flags & CHECK) printf ("\e[0;31m\tPacket Injection Encrypted Mode With Checks Entered.\e[0m\n\n");
+	if (pthread_create (&pt, NULL, (void *) auth_pass, NULL))
 	fatal ("Cannot create pthread!\n\n");
     }
   if (flags & SNIFF)
     {
+      printf ("\e[0;31m\tSniffer Password Mode Enabled.\e[0m\n\n");
       if (pthread_create (&pt, NULL, (void *) sniff_passwd, NULL))
       fatal ("Cannot create pthread!\n\n");
     }
   else
     {
-      if (pthread_create (&pt, NULL, (void *) send_fake_rip_response, NULL))
+	if (flags & CHECK) printf ("\e[0;31m\tPacket Injection Mode With Checks Entered.\e[0m\n\n");
+	else printf ("\e[0;31m\tPacket Injection Mode Entered.\e[0m\n\n");	
+	if (pthread_create (&pt, NULL, (void *) send_fake_rip_response, NULL))
 	fatal ("Cannot create pthread!\n\n");
     }
   if (flags & CHECK)
     {
       if (flags & PASS)
 	{
-	  if (pthread_create
-	      (&pt1, NULL, (void *) check_injection_crypt, NULL))
+	  if (pthread_create (&pt1, NULL, (void *) check_injection_crypt, NULL))
 	    {
 	      fprintf (stderr, "\nerror while creating the pthread\n");
 	      pthread_cancel (pt);

@@ -3,7 +3,7 @@
 void
 usage (char *name)
 {
-  fprintf (stderr, " usage: %s [-b] [-x] -r [-a] [-s] -m -g -n [-d] [-c] [-p]\n\n", name);
+  fprintf (stderr, " usage: %s -b -x -r -a -e -s -m -g -n -d -c -p -h\n\n", name);
   fprintf (stderr, " b: net scanner		optional\n");
   fprintf (stderr, " x: sniff password	optional\n");
   fprintf (stderr, " r: route IP		mandatory\n");
@@ -23,5 +23,5 @@ usage (char *name)
 void
 credits ()
 {
-  printf ("\n RiPPeR v.1.2-beta\tby mydecay && click\n\n");
+  printf ("\n\n \e[0;31m\tRiPPeR v. 1.2 - beta\tby mydecay && click\e[0m\n\n");
 }
