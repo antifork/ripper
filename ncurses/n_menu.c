@@ -218,7 +218,8 @@ int option_menu()
 		   redrawscrollwin(princ,0);
 		   werase(princ->win);
 		   n_print("princ",1,2,"Scanner mode enabled");
-                   n_print("winfo",1,2,"**Press q to shut down scan tread**");
+		   n_print("winfo",1,2,"**Press q to shut down scan tread of retype subnet**");
+    
 		   if (pthread_create (&pt, NULL, (void *) scan_net, NULL))
 		     n_print("winfo",4,2,"Cannot create pthread scan_net())");
 
