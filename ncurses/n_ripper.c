@@ -93,6 +93,8 @@ int main_graph(void)
 	switch(key)
 	  {
 	   case KEY_F(1):
+	     werase(winfo->win);
+	     n_print("winfo",1,2,"You are in the menu window[F1] to exit just press q");
 	     while( (out!=1) && ((c = wgetch(my_nmenu_win)) != 'q') )
 	       {
 		  switch(c)
@@ -187,9 +189,13 @@ int main_graph(void)
 	       }
 	     out=0;
              button++;
+	     werase(winfo->win);
+	     n_print("winfo",1,2,"now that you have pressed q you can join other windows pressing F1/F2/F3");
 	     break;
 
 	   case KEY_F(2):
+	     werase(winfo->win);
+	     n_print("winfo",1,2,"You have join the Main window[F2], to exit just press q");
 	     while((c = getch()) != 'q')
 	       {
 		  switch(c)
@@ -209,9 +215,13 @@ int main_graph(void)
 		    }
 		  redrawscrollwin(princ, 0);
 	       }
+	     werase(winfo->win);
+	     n_print("winfo",1,2,"now that you have pressed q you can join other windows pressing F1/F2/F3");
 	     break;
 
 	   case KEY_F(3):
+	     werase(winfo->win);
+	     n_print("winfo",1,2,"You have join the help window[F3] to exit just press q");
 	     while((c = getch()) != 'q')
 	       {
 		  switch(c)
@@ -231,6 +241,8 @@ int main_graph(void)
 		    }
 		  redrawscrollwin(winfo, 0);
 	       }
+	     werase(winfo->win);
+	     n_print("winfo",1,2,"now that you have pressed q you can join other windows pressing F1/F2/F3");
 	     break;
 
 	   case 'h':
@@ -257,6 +269,7 @@ int main_graph(void)
 	    print_stats();
 	    break;
 	   case 'q':
+	     werase(winfo->win);
 	     pop_up_win();
 	     mvwprintw(pop_up,7,10,"Are you sure you want to exit (y/n)?");
 	     wmove(pop_up,4,2);
