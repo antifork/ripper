@@ -453,22 +453,15 @@ while(1)  pcap_dispatch (handle, -1, pack_handler_sniff, NULL);
 }
 
 void wait() {
-  int cha;
-  while (1)
+
+  while ((char) getchar() != 'q');
+    
+  fprintf (stderr, "\nExiting...\n");
+  pthread_cancel (pt);
+  pthread_join (pt, NULL);
+  if (flags & CHECK)
     {
-      cha = getchar ();
-      if ((char) cha == 'q')
-        {
-          fprintf (stderr, "\nExiting...\n");
-          pthread_cancel (pt);
-          pthread_join (pt, NULL);
-          if (flags & CHECK)
-            {
-              pthread_cancel (pt1);
-              pthread_join (pt1, NULL);
-            }
-	}
+      pthread_cancel (pt1);
+      pthread_join (pt1, NULL);
     }
 }
-
-
