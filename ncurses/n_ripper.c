@@ -269,7 +269,6 @@ int main_graph(void)
 	    print_stats();
 	    break;
 	   case 'q':
-	     werase(winfo->win);
 	     pop_up_win();
 	     mvwprintw(pop_up,7,10,"Are you sure you want to exit (y/n)?");
 	     wmove(pop_up,4,2);
@@ -287,7 +286,7 @@ int main_graph(void)
 	       }
 	     while( ris != 'y' && ris != 'n');
 	     delwin(pop_up);
-	     redrawscrollwin(princ,0);
+     redrawscrollwin(princ,0);
 	     break;
 	  }
      }
