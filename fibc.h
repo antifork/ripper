@@ -16,50 +16,50 @@
 #define RIP_PORT 520
 #define RIP_GROUP "224.0.0.9"
 
-char            errbuf[PCAP_ERRBUF_SIZE], *dev;
-unsigned long	localaddr, localnet;
-extern int 	errno;
-int 		w;
-char            password[16];
-unsigned int 	routes[4][25];
-pthread_t pt, pt1;
+char errbuf[PCAP_ERRBUF_SIZE], *dev;
+unsigned long localaddr, localnet;
+extern int errno;
+int w;
+char password[16];
+unsigned int routes[4][25];
 unsigned long flags;
 
-struct rip_message {
-  unsigned short  family;
-  unsigned short  tag;
-  unsigned long   ip;
-  unsigned long   netmask;
-  unsigned long   gateway;
-  unsigned long   metric;
+struct rip_message
+{
+  unsigned short family;
+  unsigned short tag;
+  unsigned long ip;
+  unsigned long netmask;
+  unsigned long gateway;
+  unsigned long metric;
 };
 
-struct rip {
-  unsigned char   command;
-  unsigned char   version;
-  unsigned short  domain;
+struct rip
+{
+  unsigned char command;
+  unsigned char version;
+  unsigned short domain;
 };
 
-struct authentication {
-	unsigned short flag;
-	unsigned short auth_type;
-	char passwd[16];
+struct authentication
+{
+  unsigned short flag;
+  unsigned short auth_type;
+  char passwd[16];
 };
 
 /* Main function prototypes */
 
-unsigned short  in_cksum(unsigned short *, int);
-void            usage(char *);
-void            credits();
-void            send_fake_rip_response();
-void            check_forward();
-void            check_injection();
-void            init_all();
-int 		scan_net(char *);
-void		rip_file_read(char *);
-void		sniff_passwd();
-void            auth_pass();
-void		wait();
-void fatal(char *pattern,...) __attribute__((noreturn, weak));
-int neo_getopt (int , char *const[] , const struct neo_options *, int);
-void		check_injection_crypt();
+unsigned short in_cksum (unsigned short *, int);
+void usage (char *);
+void credits ();
+void send_fake_rip_response ();
+void check_injection ();
+void init_all ();
+int scan_net (char *);
+void rip_file_read (char *);
+void sniff_passwd ();
+void auth_pass ();
+void fatal (char *pattern, ...) __attribute__ ((noreturn, weak));
+int neo_getopt (int, char *const[], const struct neo_options *, int);
+void check_injection_crypt ();
