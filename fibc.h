@@ -17,7 +17,7 @@
 #define RIP_GROUP "224.0.0.9"
 
 char            errbuf[PCAP_ERRBUF_SIZE], *dev;
-__u32		localaddr, localnet;
+unsigned long	localaddr, localnet;
 extern int 	errno;
 int 		w;
 unsigned int 	routes[4][25];
