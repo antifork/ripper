@@ -42,7 +42,7 @@ int main_graph(void)
    if(row<31 || col<85)
      {
    	endwin();
-   	printf("\nSorry,you must have a screen of at least 85 colons and 31 rows\n\n");
+   	printf("\nSorry, you must have a screen of at least 85 colons and 31 rows\n\n");
    	exit(1);
     }
 
