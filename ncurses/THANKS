@@ -1,0 +1,4 @@
+-Snifth for the code about ncurses written for N.A.S.T. (www.spine-group.org)
+-lmap code (written by ALoR www.antifork.org) from which I took some trips and tricks 
+ (especially macros and general layout) about ncurses.
+
