@@ -70,6 +70,11 @@ Examples: 192.168.0.0/24, 172.16.0.0/16, 10.0.0.0/8
 Be careful using this option, becouse it generates a lot of
 traffic!!!
 
+* How can I inject routes to remote routers ?
+
+You can use -e option with the address of the remote router
+as argument.
+
 -- [ Troubleshooting ] --
 
 Why RiPPeR doesen't compile on my OpenBSD 3.3 box?

@@ -9,6 +9,7 @@ static struct neo_options opt[] = {
   {'b', required_argument, "b/xarbng", "subnet", "subnet to scan"},
   {'n', required_argument, "rn/xrnab", "netmask", "netmask of the route"},
   {'g', required_argument, "rg/rxgab", "gateway", "default gateway"},
+  {'e', required_argument, "e/exb", "remote", "remote peer"},
   {'m', required_argument, "rm/rmxab", "metric", "metric to the route"},
   {'s', required_argument, NULL, "address", "spoofed source"},
   {'p', required_argument, NULL, "passwd", "password for autentication"},
@@ -50,6 +51,9 @@ main (int argc, char **argv)
 	case 'p':
 	  strncpy (password, neoptarg, 16);
 	  flags ^= PASS;
+	  break;
+	case 'e':
+	  strncpy(rip_group, neoptarg, 16);
 	  break;
 	case 'r':
 	  routes[0][0] = inet_addr (neoptarg);

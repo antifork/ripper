@@ -19,7 +19,6 @@
 
 #define BUFLEN 1500
 #define RIP_PORT 520
-#define RIP_GROUP "224.0.0.9"
 
 char errbuf[PCAP_ERRBUF_SIZE], *dev;
 unsigned long localaddr, localnet;
@@ -28,6 +27,7 @@ int w;
 char password[16];
 unsigned int routes[4][25];
 unsigned long flags;
+char rip_group[16];
 
 struct rip_message
 {

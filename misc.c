@@ -8,6 +8,7 @@ usage (char *name)
   fprintf (stderr, " x: sniff password	optional\n");
   fprintf (stderr, " r: route IP		mandatory\n");
   fprintf (stderr, " a: read file		optional\n");
+  fprintf (stderr, " e: send to remote peer	optional\n");
   fprintf (stderr, " s: spoofed source	optional\n");
   fprintf (stderr, " m: metric's value	default: 1\n");
   fprintf (stderr, " g: gateway IP		default: local machine\n");

